@@ -13,7 +13,8 @@
     "format": "biome format --write .",
     "test": "vitest run",
     "test:watch": "vitest",
-    "icons": "node scripts/generate-icons.mjs"
+    "icons": "node scripts/generate-icons.mjs",
+    "fixture-images": "node scripts/generate-fixture-images.mjs"
   },
   "dependencies": {
     "@ai-sdk/google": "^4.0.68",
