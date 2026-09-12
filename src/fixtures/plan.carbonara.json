@@ -56,7 +56,7 @@
       "ingredients": ["guanciale"],
       "tools": ["chef's knife", "cutting board"],
       "imagePrompt": "Guanciale being sliced into even 1 cm batons, skin removed, chef's knife mid-cut",
-      "imageUrl": "/images/carbonara/chop-guanciale.png",
+      "imageUrl": "/images/carbonara/chop-guanciale.svg",
       "questions": [
         "How thick should each baton be?",
         "Should I remove the skin first?",
@@ -72,6 +72,7 @@
       "ingredients": ["large eggs", "Pecorino Romano", "black pepper"],
       "tools": ["mixing bowl", "whisk"],
       "parallelWith": ["render-guanciale"],
+      "imageUrl": "/images/carbonara/mix-egg-cheese.svg",
       "questions": [
         "Should I use whole eggs?",
         "How smooth should the mixture be?",
@@ -88,6 +89,7 @@
       "ingredients": ["guanciale"],
       "tools": ["large skillet"],
       "parallelWith": ["mix-egg-cheese"],
+      "imageUrl": "/images/carbonara/render-guanciale.svg",
       "questions": [
         "Why start with a cold skillet?",
         "How crisp should the guanciale be?",
@@ -104,6 +106,7 @@
       "attentionSec": 5,
       "ingredients": ["kosher salt"],
       "tools": ["large pot"],
+      "imageUrl": "/images/carbonara/boil-water.svg",
       "questions": [
         "How much water should I use?",
         "When should I add the salt?",
@@ -119,6 +122,7 @@
       "durationSec": 540,
       "ingredients": ["spaghetti", "kosher salt"],
       "tools": ["large pot", "tongs", "measuring cup"],
+      "imageUrl": "/images/carbonara/cook-spaghetti.svg",
       "questions": [
         "How do I judge very al dente?",
         "Why reserve so much pasta water?",
@@ -133,6 +137,7 @@
       "detail": "Whisk 120 ml of hot pasta water into the egg and cheese mixture a little at a time to loosen it without scrambling the eggs.",
       "ingredients": ["large eggs", "Pecorino Romano", "black pepper"],
       "tools": ["mixing bowl", "whisk", "measuring cup"],
+      "imageUrl": "/images/carbonara/temper-sauce.svg",
       "questions": [
         "How slowly should I add the water?",
         "What consistency am I aiming for?",
@@ -148,7 +153,7 @@
       "ingredients": ["spaghetti", "guanciale", "large eggs", "Pecorino Romano", "black pepper"],
       "tools": ["large skillet", "tongs"],
       "imagePrompt": "Spaghetti, guanciale, and egg-Pecorino sauce tossed together with tongs in a skillet, sauce glossy and creamy and clinging to the strands",
-      "imageUrl": "/images/carbonara/combine-pasta.png",
+      "imageUrl": "/images/carbonara/combine-pasta.svg",
       "questions": [
         "Why must the skillet be off the heat?",
         "How much pasta water should I add?",
@@ -164,7 +169,7 @@
       "ingredients": ["spaghetti", "guanciale", "Pecorino Romano", "black pepper"],
       "tools": ["tongs"],
       "imagePrompt": "Finished spaghetti carbonara twirled into a nest in a shallow bowl, glossy sauce, crisp guanciale, grated Pecorino and cracked black pepper on top",
-      "imageUrl": "/images/carbonara/plate-carbonara.png",
+      "imageUrl": "/images/carbonara/plate-carbonara.svg",
       "questions": [
         "How do I make a neat pasta twirl?",
         "How much finishing cheese should I add?",

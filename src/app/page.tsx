@@ -244,6 +244,7 @@ export default function Home() {
 }
 
 function ImportScreen() {
+  const flags = useFlags();
   const importPlan = useImportPlan();
 
   return (
@@ -255,6 +256,12 @@ function ImportScreen() {
       {importPlan.state.status === "error" && (
         <ErrorState message={importPlan.state.message} onRetry={importPlan.state.retry} />
       )}
+      <a
+        className="flex min-h-14 items-center rounded-pill border border-whisper-warm px-6 text-warm-off-white"
+        href={flags.noimages ? "/demo-images.html?noimages=1" : "/demo-images.html"}
+      >
+        Browse recipe demo images
+      </a>
     </main>
   );
 }

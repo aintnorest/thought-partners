@@ -1,0 +1,357 @@
+[
+  {
+    "id": "carbonara",
+    "title": "Spaghetti Carbonara",
+    "source": "src/fixtures/plan.carbonara.json",
+    "stages": [
+      {
+        "id": "chop-guanciale",
+        "title": "Cut the guanciale",
+        "caption": "Even batons with pale fat and pink meat; remove the tough skin before cutting.",
+        "imageUrl": "/images/carbonara/chop-guanciale.svg"
+      },
+      {
+        "id": "mix-egg-cheese",
+        "title": "Mix eggs and Pecorino",
+        "caption": "A thick, cohesive egg-and-cheese base speckled with black pepper; no dry pockets of cheese.",
+        "imageUrl": "/images/carbonara/mix-egg-cheese.svg"
+      },
+      {
+        "id": "render-guanciale",
+        "title": "Render until golden",
+        "caption": "Golden, crisp-edged guanciale surrounded by a pool of clear rendered fat.",
+        "imageUrl": "/images/carbonara/render-guanciale.svg"
+      },
+      {
+        "id": "boil-water",
+        "title": "Bring water to a rolling boil",
+        "caption": "Large bubbles break across the surface of the salted pasta water.",
+        "imageUrl": "/images/carbonara/boil-water.svg"
+      },
+      {
+        "id": "cook-spaghetti",
+        "title": "Cook and reserve pasta water",
+        "caption": "Flexible spaghetti in the pot, with starchy water set aside before draining. Taste to judge the firm core.",
+        "imageUrl": "/images/carbonara/cook-spaghetti.svg"
+      },
+      {
+        "id": "temper-sauce",
+        "title": "Loosen into a glossy ribbon",
+        "caption": "Warm egg-and-cheese sauce loosened with pasta water, flowing in a smooth ribbon rather than forming curds.",
+        "imageUrl": "/images/carbonara/temper-sauce.svg"
+      },
+      {
+        "id": "combine-pasta",
+        "title": "Toss off the heat",
+        "caption": "Spaghetti and crisp guanciale coated in a fluid egg-Pecorino sauce; the skillet is off the heat.",
+        "imageUrl": "/images/carbonara/combine-pasta.svg"
+      },
+      {
+        "id": "plate-carbonara",
+        "title": "Twirl, finish, and serve",
+        "caption": "A nest of glossy spaghetti with crisp guanciale, grated Pecorino, and cracked black pepper.",
+        "imageUrl": "/images/carbonara/plate-carbonara.svg"
+      }
+    ]
+  },
+  {
+    "id": "classic-french-omelette",
+    "title": "Classic French Omelette",
+    "source": "samples/cooklang/familiar/classic-french-omelette.cook",
+    "stages": [
+      {
+        "id": "prep",
+        "title": "Beat the eggs",
+        "caption": "Three eggs beaten with a pinch of salt into a uniform yellow mixture; a fork rests in the bowl.",
+        "imageUrl": "/images/demo/classic-french-omelette/prep.svg"
+      },
+      {
+        "id": "cooking",
+        "title": "Stir soft curds",
+        "caption": "Small soft egg curds gather in the skillet while the surrounding egg remains glossy and yellow, with no browned patches.",
+        "imageUrl": "/images/demo/classic-french-omelette/cooking.svg"
+      },
+      {
+        "id": "finished",
+        "title": "Roll without browning",
+        "caption": "A pale yellow rolled French omelette has a smooth glossy surface and a light scattering of the optional chopped chives.",
+        "imageUrl": "/images/demo/classic-french-omelette/finished.svg"
+      }
+    ]
+  },
+  {
+    "id": "grilled-cheese",
+    "title": "Grilled Cheese",
+    "source": "samples/cooklang/familiar/grilled-cheese.cook",
+    "stages": [
+      {
+        "id": "prep",
+        "title": "Layer cheddar and bread",
+        "caption": "Two sandwich-bread slices on the board: one shows mayonnaise spread on its outside face, and the other holds cheddar for the filling.",
+        "imageUrl": "/images/demo/grilled-cheese/prep.svg"
+      },
+      {
+        "id": "cooking",
+        "title": "Turn the golden side up",
+        "caption": "The flipped sandwich shows an evenly golden first side; cheddar is softening and peeking out around the bread in the skillet.",
+        "imageUrl": "/images/demo/grilled-cheese/cooking.svg"
+      },
+      {
+        "id": "finished",
+        "title": "Slice diagonally",
+        "caption": "The rested grilled cheese is cut into two triangular halves, with golden bread and melted cheddar visible along the cut edges.",
+        "imageUrl": "/images/demo/grilled-cheese/finished.svg"
+      }
+    ]
+  },
+  {
+    "id": "pancakes",
+    "title": "Buttermilk Pancakes",
+    "source": "samples/cooklang/familiar/pancakes.cook",
+    "stages": [
+      {
+        "id": "prep",
+        "title": "Fold a lumpy batter",
+        "caption": "The wet and dry mixtures have been folded together into pale batter with small lumps; a spatula rests in the mixing bowl.",
+        "imageUrl": "/images/demo/pancakes/prep.svg"
+      },
+      {
+        "id": "cooking",
+        "title": "Watch the bubbles open",
+        "caption": "Two pancakes show many popped bubbles and dry-looking rims on the griddle; a turned pancake shows its golden-brown underside.",
+        "imageUrl": "/images/demo/pancakes/cooking.svg"
+      },
+      {
+        "id": "finished",
+        "title": "Butter and maple syrup",
+        "caption": "A stack of golden pancakes is served with butter and maple syrup, with the browned edges visible around the stack.",
+        "imageUrl": "/images/demo/pancakes/finished.svg"
+      }
+    ]
+  },
+  {
+    "id": "simple-marinara",
+    "title": "Simple Marinara",
+    "source": "samples/cooklang/familiar/simple-marinara.cook",
+    "stages": [
+      {
+        "id": "prep",
+        "title": "Keep the garlic pale",
+        "caption": "Pale garlic pieces sit in olive oil in the saucepan; crushed tomatoes are ready in a separate bowl to add next.",
+        "imageUrl": "/images/demo/simple-marinara/prep.svg"
+      },
+      {
+        "id": "cooking",
+        "title": "Simmer and stir",
+        "caption": "Thickening crushed-tomato sauce has a few gentle surface bubbles; the wooden spoon draws a brief curved trail through the sauce.",
+        "imageUrl": "/images/demo/simple-marinara/cooking.svg"
+      },
+      {
+        "id": "finished",
+        "title": "Finish with basil and oil",
+        "caption": "The thick marinara fills a serving bowl, with torn basil and ribbons of olive oil over the visibly textured crushed tomatoes.",
+        "imageUrl": "/images/demo/simple-marinara/finished.svg"
+      }
+    ]
+  },
+  {
+    "id": "dragon-fruit-breakfast-bowl",
+    "title": "Dragon Fruit Breakfast Bowl",
+    "source": "samples/cooklang/exotic/dragon-fruit-breakfast-bowl.cook",
+    "stages": [
+      {
+        "id": "prep",
+        "title": "Halve and scoop",
+        "caption": "Dragon fruit is halved lengthwise. A spoon follows the pink peel to lift out the white, black-seeded flesh in one piece.",
+        "imageUrl": "/images/demo/dragon-fruit-breakfast-bowl/prep.svg"
+      },
+      {
+        "id": "cooking",
+        "title": "Cube and slice",
+        "caption": "Peeled dragon fruit is cut into even bite-size cubes; banana and kiwi are sliced before the bowls are assembled.",
+        "imageUrl": "/images/demo/dragon-fruit-breakfast-bowl/cooking.svg"
+      },
+      {
+        "id": "finished",
+        "title": "Yogurt breakfast bowl",
+        "caption": "Greek yogurt is topped with dragon fruit cubes, banana, kiwi, granola, and a light drizzle of honey.",
+        "imageUrl": "/images/demo/dragon-fruit-breakfast-bowl/finished.svg"
+      }
+    ]
+  },
+  {
+    "id": "mango-sticky-rice",
+    "title": "Mango Sticky Rice with Hedgehog-Cut Mango",
+    "source": "samples/cooklang/exotic/mango-sticky-rice.cook",
+    "stages": [
+      {
+        "id": "prep",
+        "title": "Score the mango cheeks",
+        "caption": "Mango cheeks are cut close to the flat pit, then crosshatched without piercing the skin. One cheek is turned inside out to lift its cubes.",
+        "imageUrl": "/images/demo/mango-sticky-rice/prep.svg"
+      },
+      {
+        "id": "cooking",
+        "title": "Fold in coconut sauce",
+        "caption": "Cooked glutinous rice receives half of the warmed coconut milk, sugar, and salt sauce; it will rest covered for ten minutes. The remaining sauce is reserved for serving.",
+        "imageUrl": "/images/demo/mango-sticky-rice/cooking.svg"
+      },
+      {
+        "id": "finished",
+        "title": "Rice, mango, sesame",
+        "caption": "Sticky coconut rice is plated beside the hedgehog-cut mango and finished with reserved coconut sauce and toasted sesame seeds.",
+        "imageUrl": "/images/demo/mango-sticky-rice/finished.svg"
+      }
+    ]
+  },
+  {
+    "id": "pomegranate-citrus-salad",
+    "title": "Pomegranate Citrus Salad",
+    "source": "samples/cooklang/exotic/pomegranate-citrus-salad.cook",
+    "stages": [
+      {
+        "id": "prep",
+        "title": "Open along the ridges",
+        "caption": "The pomegranate skin is scored from crown to base along its natural ridges, then opened into sections with the white pith still attached to the peel.",
+        "imageUrl": "/images/demo/pomegranate-citrus-salad/prep.svg"
+      },
+      {
+        "id": "cooking",
+        "title": "Release arils in water",
+        "caption": "Pomegranate sections are loosened in a bowl of water: red arils settle below while loose white pith floats and is skimmed away. Oranges are peeled and sliced into rounds.",
+        "imageUrl": "/images/demo/pomegranate-citrus-salad/cooking.svg"
+      },
+      {
+        "id": "finished",
+        "title": "Arrange the citrus salad",
+        "caption": "Arugula, peeled orange rounds, ruby pomegranate arils, and mint are arranged on a platter with olive oil, lemon, honey, and salt dressing.",
+        "imageUrl": "/images/demo/pomegranate-citrus-salad/finished.svg"
+      }
+    ]
+  },
+  {
+    "id": "steamed-artichoke-aioli",
+    "title": "Steamed Artichoke with Lemon Aioli",
+    "source": "samples/cooklang/exotic/steamed-artichoke-aioli.cook",
+    "stages": [
+      {
+        "id": "prep",
+        "title": "Trim the leaves and stem",
+        "caption": "Artichoke tops are cut off, sharp leaf tips are clipped flat, and tough green stem skin is peeled away to the pale center. Lemon is rubbed on the cut surfaces.",
+        "imageUrl": "/images/demo/steamed-artichoke-aioli/prep.svg"
+      },
+      {
+        "id": "cooking",
+        "title": "Steam until tender",
+        "caption": "Two trimmed artichokes steam above water in a covered pot for about 35 minutes, until a leaf pulls away easily. The lid is set aside in this instructional view.",
+        "imageUrl": "/images/demo/steamed-artichoke-aioli/cooking.svg"
+      },
+      {
+        "id": "finished",
+        "title": "Clear the hearts and serve",
+        "caption": "Cooked artichokes are halved and the fuzzy choke is scraped away, revealing smooth hearts. The halves are served warm with mayonnaise, lemon, garlic, and salt aioli.",
+        "imageUrl": "/images/demo/steamed-artichoke-aioli/finished.svg"
+      }
+    ]
+  },
+  {
+    "id": "young-jackfruit-tacos",
+    "title": "Young Jackfruit Tacos",
+    "source": "samples/cooklang/exotic/young-jackfruit-tacos.cook",
+    "stages": [
+      {
+        "id": "prep",
+        "title": "Remove cores and shred",
+        "caption": "Drained young green jackfruit is separated from its firm triangular cores. The softer pieces are pulled into distinct strands rather than mashed.",
+        "imageUrl": "/images/demo/young-jackfruit-tacos/prep.svg"
+      },
+      {
+        "id": "cooking",
+        "title": "Simmer and brown the strands",
+        "caption": "Shredded jackfruit cooks with softened onion, garlic, chili powder, cumin, smoked paprika, orange juice, and soy sauce. Lightly browned edges remain visibly fibrous.",
+        "imageUrl": "/images/demo/young-jackfruit-tacos/cooking.svg"
+      },
+      {
+        "id": "finished",
+        "title": "Fill warm corn tortillas",
+        "caption": "Corn tortillas hold saucy, lightly browned jackfruit strands and fresh cilantro, with lime wedges alongside for squeezing.",
+        "imageUrl": "/images/demo/young-jackfruit-tacos/finished.svg"
+      }
+    ]
+  },
+  {
+    "id": "hand-folded-dumplings",
+    "title": "Hand-Folded Pork and Cabbage Dumplings",
+    "source": "samples/cooklang/centerpiece/hand-folded-dumplings.cook",
+    "stages": [
+      {
+        "id": "prep",
+        "title": "Center the filling",
+        "caption": "Squeezed napa cabbage is mixed with pork, scallions, ginger, soy sauce, sesame oil and white pepper. A small teaspoon mound leaves a clean border on the dumpling wrapper.",
+        "imageUrl": "/images/demo/hand-folded-dumplings/prep.svg"
+      },
+      {
+        "id": "cooking",
+        "title": "Fold and seal",
+        "caption": "Moisten the wrapper edge with water, fold it over the filling, then pleat one side against the other. The even pleats form a fully sealed edge without filling squeezing out.",
+        "imageUrl": "/images/demo/hand-folded-dumplings/cooking.svg"
+      },
+      {
+        "id": "finished",
+        "title": "Golden, steamed and crisped",
+        "caption": "Dumplings are browned flat-side down, steamed with water under a lid, then uncovered until the water evaporates and the bottoms re-crisp. Serve with dumpling dipping sauce; several are turned to show the browned base.",
+        "imageUrl": "/images/demo/hand-folded-dumplings/finished.svg"
+      }
+    ]
+  },
+  {
+    "id": "roast-turkey-breast-pan-gravy",
+    "title": "Roast Turkey Breast with Pan Gravy",
+    "source": "samples/cooklang/centerpiece/roast-turkey-breast-pan-gravy.cook",
+    "stages": [
+      {
+        "id": "prep",
+        "title": "Herb-butter roasting pan",
+        "caption": "Thyme-and-lemon herb butter is spread under and over the unbroken skin of the bone-in turkey breast. Onion, carrot and celery support the breast in the roasting pan, ready for the 350°F oven.",
+        "imageUrl": "/images/demo/roast-turkey-breast-pan-gravy/prep.svg"
+      },
+      {
+        "id": "cooking",
+        "title": "Rest the roast, whisk gravy",
+        "caption": "Roast at 350°F for about 90 minutes, checking doneness with a thermometer—not skin color—before resting 20 minutes. Whisk butter and flour, then skimmed drippings and stock; simmer until the gravy coats a spoon and pours in a smooth ribbon.",
+        "imageUrl": "/images/demo/roast-turkey-breast-pan-gravy/cooking.svg"
+      },
+      {
+        "id": "finished",
+        "title": "Carve across the grain",
+        "caption": "After thermometer-verified cooking and the 20-minute rest, carve the breast from the bone and cut even slices about ¼ inch thick across the grain. Pan gravy is served alongside; the drawing does not establish doneness.",
+        "imageUrl": "/images/demo/roast-turkey-breast-pan-gravy/finished.svg"
+      }
+    ]
+  },
+  {
+    "id": "whole-roasted-branzino",
+    "title": "Whole Roasted Branzino with Citrus and Herbs",
+    "source": "samples/cooklang/centerpiece/whole-roasted-branzino.cook",
+    "stages": [
+      {
+        "id": "prep",
+        "title": "Score and loosely stuff",
+        "caption": "Two dried branzino are scored three times per side, seasoned with salt, pepper and olive oil, then loosely filled with lemon slices, parsley and fennel fronds without bulging the cavities.",
+        "imageUrl": "/images/demo/whole-roasted-branzino/prep.svg"
+      },
+      {
+        "id": "cooking",
+        "title": "Roast until blistered",
+        "caption": "Roast the stuffed fish on a sheet pan at 425°F for about 18 minutes. The recipe asks for blistered skin and a fork check at the thickest point for flesh near the backbone that flakes when nudged; this illustration cannot verify doneness.",
+        "imageUrl": "/images/demo/whole-roasted-branzino/cooking.svg"
+      },
+      {
+        "id": "finished",
+        "title": "Lift broad fillets",
+        "caption": "A fish spatula and spoon lift the top fillets cleanly from the bones in broad pieces. Serve the branzino fillets with lemon wedges and olive oil; the plate depicts lifted fillets rather than the skeleton.",
+        "imageUrl": "/images/demo/whole-roasted-branzino/finished.svg"
+      }
+    ]
+  }
+]

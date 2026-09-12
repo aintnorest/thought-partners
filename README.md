@@ -21,6 +21,16 @@ Jacques is a PWA sous chef that turns recipes into a step-by-step cooking flow. 
 - **Sample recipes:** `samples/cooklang/` contains curated Cooklang-style recipes grouped by `familiar/`, `exotic/`, and `centerpiece/`. See `samples/AGENTS.md` for the recipe conventions and `-- watch:` visual cue format.
 - **Design system:** `DESIGN.md` is the required visual source of truth for cooking screens.
 
+## Staged demo images
+
+Use **Browse recipe demo images** on the landing screen, or open `/demo-images.html`. The gallery contains 44 local, 800×600 SVG illustrations: prep, cooking/assembly, and finished stages for all 12 Cooklang samples, plus all 8 Carbonara walkthrough steps. Each stage has a caption and full-size image link.
+
+These are deterministic instructional drawings, not photos, camera captures, or AI assessments. Use them as visual references in a scripted demo, not as realistic vision-test inputs or evidence of food safety. The sample recipes are browsable in the gallery; this image set does not add sample recipe selection to the walkthrough.
+
+Artwork sources live in `scripts/demo-images/`. Run `pnpm fixture-images` (or `node scripts/generate-fixture-images.mjs`) to regenerate the assets, gallery, and `/images/demo/index.json` manifest. The manifest maps each recipe's source file and stage descriptions to local image URLs; no API key or network is needed to generate them.
+
+`?noimages=1` suppresses image rendering and requests in both the gallery and walkthrough. Carbonara images use the existing fixture prewarm below. For an offline gallery demo on production, visit the app first to activate its service worker, open the gallery, and scroll through the stages you will show while still online.
+
 ## Microphone and camera check
 
 Open `/?fixture=1`, use the bottom **Microphone capture** control or scroll to **Watch Me**, and select **Start capture**. Allow camera and microphone access to see the live preview and input-level meter. Fixture mode keeps media on the device and sends no API requests. The demo fix/readiness buttons show explicitly scripted examples, not model output. Timers run without stopping capture; navigating to another step releases both devices.
