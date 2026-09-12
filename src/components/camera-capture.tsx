@@ -20,11 +20,7 @@ function CameraIcon() {
   );
 }
 
-export function CameraCapture({
-  onCapture,
-}: {
-  onCapture?: (file: File) => void;
-}) {
+export function CameraCapture({ onCapture }: { onCapture?: (file: File) => void }) {
   const inputRef = useRef<HTMLInputElement>(null);
 
   if (!onCapture) {

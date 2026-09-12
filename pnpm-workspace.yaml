@@ -1,0 +1,3 @@
+allowBuilds:
+  # Telemetry-only postinstall pulled in by @copilotkit/runtime; never needed.
+  "@scarf/scarf": false

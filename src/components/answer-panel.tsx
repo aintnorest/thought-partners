@@ -30,13 +30,14 @@ export function AnswerPanel({
             {card.question}
           </div>
           <div className="text-warm-off-white leading-[1.55]">
-            {card.text.split("\n").map((line, i) => (
-              line.trim() && (
-                <p key={i} className="mb-2">
-                  {formatMarkdownLite(line)}
-                </p>
-              )
-            ))}
+            {card.text.split("\n").map(
+              (line, i) =>
+                line.trim() && (
+                  <p key={i} className="mb-2">
+                    {formatMarkdownLite(line)}
+                  </p>
+                ),
+            )}
           </div>
           {card.streaming && (
             <div className="h-4 w-24 rounded bg-raised-charcoal overflow-hidden relative mt-4">

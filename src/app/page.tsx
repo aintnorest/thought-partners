@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { AnswerPanel } from "@/components/answer-panel";
 import { AppShell } from "@/components/app-shell";
 import { CameraCapture } from "@/components/camera-capture";
 import { ControlCluster } from "@/components/control-cluster";
+import { ErrorState } from "@/components/error-state";
 import { HeartbeatToast } from "@/components/heartbeat-toast";
 import { ImagePanel } from "@/components/image-panel";
 import { ImportForm } from "@/components/import-form";
@@ -13,12 +14,28 @@ import { StepCard } from "@/components/step-card";
 import { Timeline } from "@/components/timeline";
 import { Timer } from "@/components/timer";
 import { VerdictCard } from "@/components/verdict-card";
-import fixturePlan from "@/fixtures/plan.carbonara.json";
-import { fixtureAnswerChunks, fixtureVerdict } from "@/lib/fixture-responses";
+import {
+  selectAnswerFor,
+  selectCurrentStep,
+  selectHeartbeatFor,
+  selectVerdictFor,
+} from "@/lib/cards";
 import { useFlags } from "@/lib/glue/app-bootstrap";
+import type { Flags } from "@/lib/glue/flags";
+import { useAgentBridge } from "@/lib/hooks/use-agent-bridge";
+import { useAnswer } from "@/lib/hooks/use-answer";
+import { useImportPlan } from "@/lib/hooks/use-import-plan";
+import { useStepImages } from "@/lib/hooks/use-step-images";
+import { useVisionCheck } from "@/lib/hooks/use-vision-check";
+import { useWalkthroughControls } from "@/lib/hooks/use-walkthrough-controls";
 import { isWatchableStep, useWatchMeSession } from "@/lib/realtime/use-watch-me-session";
 import { useStore } from "@/lib/store";
-import type { AnswerCard, RecipePlan, Step, WatchFixCard, WatchReadyCard } from "@/lib/types";
+import type {
+  Step,
+  VerdictCard as VerdictCardData,
+  WatchFixCard,
+  WatchReadyCard,
+} from "@/lib/types";
 
 function WatchMePanel({ step }: { step: Step }) {
   const flags = useFlags();
@@ -205,164 +222,96 @@ function WatchMePanel({ step }: { step: Step }) {
   );
 }
 
-const plan = fixturePlan as RecipePlan;
-const OFFLINE_QA_MESSAGE = "Offline demo — Q&A needs a connection.";
-const STREAM_CHUNK_DELAY_MS = 90;
+const OFFLINE_QA_MESSAGE = "Jacques needs the network for questions — offline demo";
 
 export default function Home() {
   const flags = useFlags();
-  const storePlan = useStore((s) => s.plan);
-  const stepIndex = useStore((s) => s.stepIndex);
-  const generation = useStore((s) => s.generation);
-  const cards = useStore((s) => s.cards);
-  const activeTimer = useStore((s) => s.activeTimer);
+  const plan = useStore((state) => state.plan);
 
-  const [activeQuestion, setActiveQuestion] = useState<string | undefined>();
-  const streamGeneration = useRef(0);
-
-  const currentStep = storePlan?.steps[stepIndex];
-  const showWatchMe = !flags.nowatch && isWatchableStep(currentStep);
-
-  // Cancel the sample stream synchronously when navigation/repeat invalidates its context.
-  useEffect(() => {
-    const unsubscribe = useStore.subscribe((state, previous) => {
-      if (
-        state.plan !== previous.plan ||
-        state.stepIndex !== previous.stepIndex ||
-        state.generation !== previous.generation
-      ) {
-        setActiveQuestion(undefined);
-        streamGeneration.current += 1;
-      }
-    });
-    return () => {
-      unsubscribe();
-      streamGeneration.current += 1;
-    };
-  }, []);
-
-  useEffect(() => {
-    function onKeyDown(event: KeyboardEvent) {
-      if (!storePlan || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
-      const target = event.target as HTMLElement | null;
-      const tag = target?.tagName;
-      if (tag === "INPUT" || tag === "TEXTAREA" || target?.isContentEditable) return;
-
-      if (event.key === "ArrowRight") {
-        event.preventDefault();
-        useStore.getState().next();
-      } else if (event.key === "ArrowLeft") {
-        event.preventDefault();
-        useStore.getState().prev();
-      } else if (event.key === "r") {
-        event.preventDefault();
-        useStore.getState().repeat();
-      }
-    }
-
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, [storePlan]);
-
-  if (!storePlan || !currentStep) {
+  if (!plan) {
     return (
       <AppShell>
-        <main className="flex flex-1 flex-col gap-8 px-4 py-10">
-          <h1 className="text-[clamp(2rem,7vw,3.25rem)] font-bold tracking-[-0.02em] text-warm-off-white">
-            Jacques
-          </h1>
-          <ImportForm
-            onSubmit={() => useStore.getState().setPlan(plan)}
-            onUseSample={() => useStore.getState().setPlan(plan)}
-          />
-        </main>
+        <ImportScreen />
       </AppShell>
     );
   }
 
-  function handleAsk(question: string) {
-    setActiveQuestion(question);
-    if (flags.fixture || !currentStep) return;
-
-    const stepId = currentStep.id;
-    const myStreamGen = ++streamGeneration.current;
-    const chunks = fixtureAnswerChunks(storePlan as RecipePlan, currentStep, question);
-
-    (async () => {
-      let text = "";
-      for (const chunk of chunks) {
-        const { promise, resolve } = Promise.withResolvers<void>();
-        setTimeout(resolve, STREAM_CHUNK_DELAY_MS);
-        await promise;
-        if (streamGeneration.current !== myStreamGen) return;
-
-        text = text ? `${text} ${chunk}` : chunk;
-        useStore.getState().setAnswer({ kind: "answer", stepId, question, text, streaming: true });
-      }
-      if (streamGeneration.current !== myStreamGen) return;
-      useStore.getState().setAnswer({ kind: "answer", stepId, question, text, streaming: false });
-    })();
-  }
-
-  function handleCapture() {
-    if (!currentStep) return;
-    const verdict = fixtureVerdict(currentStep);
-    useStore.getState().pushCard({ kind: "verdict", stepId: currentStep.id, verdict });
-  }
-
-  const latestAnswer = flags.fixture
-    ? undefined
-    : cards.findLast(
-        (card): card is AnswerCard => card.kind === "answer" && card.stepId === currentStep.id,
-      );
-  const latestVerdict = cards.findLast(
-    (card) => card.kind === "verdict" && card.stepId === currentStep.id,
+  return (
+    <AppShell>
+      <Walkthrough flags={flags} />
+    </AppShell>
   );
-  const latestHeartbeat = cards.findLast(
-    (card) => card.kind === "heartbeat" && card.stepId === currentStep.id,
+}
+
+function ImportScreen() {
+  const importPlan = useImportPlan();
+
+  return (
+    <main className="flex flex-1 flex-col gap-8 px-4 py-10">
+      <h1 className="text-[clamp(2rem,7vw,3.25rem)] font-bold tracking-[-0.02em] text-warm-off-white">
+        Jacques
+      </h1>
+      <ImportForm onSubmit={importPlan.submit} onUseSample={importPlan.useSample} />
+      {importPlan.state.status === "error" && (
+        <ErrorState message={importPlan.state.message} onRetry={importPlan.state.retry} />
+      )}
+    </main>
   );
+}
+
+function Walkthrough({ flags }: { flags: Flags }) {
+  useAgentBridge();
+  useStepImages();
+  const answer = useAnswer();
+  const vision = useVisionCheck();
+  const controls = useWalkthroughControls();
+
+  const plan = useStore((state) => state.plan);
+  const stepIndex = useStore((state) => state.stepIndex);
+  const generation = useStore((state) => state.generation);
+  const step = useStore(selectCurrentStep);
+  const heartbeat = useStore(selectHeartbeatFor(step!.id));
+  const verdict = useStore(selectVerdictFor(step!.id));
+  const answerCard = useStore(selectAnswerFor(step!.id));
+  const [dismissed, setDismissed] = useState<VerdictCardData>();
+  const cards = useStore((state) => state.cards);
   const watchCards = flags.fixture
     ? cards.filter(
         (card): card is WatchFixCard | WatchReadyCard =>
-          (card.kind === "watch_fix" || card.kind === "watch_ready") &&
-          card.stepId === currentStep.id,
+          (card.kind === "watch_fix" || card.kind === "watch_ready") && card.stepId === step!.id,
       )
     : [];
+  const showWatchMe = !flags.nowatch && isWatchableStep(step);
+
+  if (!plan || !step) {
+    return null;
+  }
 
   return (
-    <AppShell>
-      <Timeline
-        steps={storePlan.steps}
-        currentIndex={stepIndex}
-        onSelect={(i) => useStore.getState().goto(i)}
-      />
+    <>
+      <Timeline steps={plan.steps} currentIndex={stepIndex} onSelect={useStore.getState().goto} />
 
       <main className="flex flex-1 flex-col gap-6 overflow-y-auto px-4 pb-56">
-        <StepCard step={currentStep} />
-        <ImagePanel
-          imageUrl={currentStep.imageUrl}
-          alt={currentStep.title}
-          hidden={flags.noimages}
-        />
-        {currentStep.durationSec !== undefined && <Timer />}
-
-        {!flags.fixture && (
-          <p className="text-stone-gray">
-            Sample walkthrough: answers and photo verdicts are scripted examples, not AI analysis.
-          </p>
-        )}
+        <StepCard step={step} />
+        <ImagePanel imageUrl={step.imageUrl} hidden={flags.noimages} alt={step.title} />
+        {step.durationSec !== undefined && <Timer />}
 
         <QuestionCards
-          questions={currentStep.questions}
-          activeQuestion={activeQuestion}
-          onSelect={handleAsk}
-          cascadeKey={`${currentStep.id}:${generation}`}
+          key={generation}
+          questions={step.questions}
+          activeQuestion={answerCard?.question}
+          onSelect={answer.ready ? answer.ask : () => {}}
+          cascadeKey={controls.cascadeKey}
         />
-        {activeQuestion && (
-          <AnswerPanel
-            card={latestAnswer}
-            offlineMessage={flags.fixture ? OFFLINE_QA_MESSAGE : undefined}
-          />
+        <AnswerPanel
+          card={answerCard}
+          offlineMessage={flags.fixture ? OFFLINE_QA_MESSAGE : undefined}
+        />
+        {answer.state.status === "error" && (
+          <ErrorState message={answer.state.message} onRetry={answer.state.retry} />
+        )}
+        {vision.state.status === "error" && (
+          <ErrorState message={vision.state.message} onRetry={vision.state.retry} />
         )}
         {watchCards.length > 0 && (
           <section className="space-y-3" aria-label="Step notices">
@@ -385,46 +334,27 @@ export default function Home() {
             ))}
           </section>
         )}
-        {showWatchMe && (
-          <WatchMePanel key={`${storePlan.id}:${currentStep.id}`} step={currentStep} />
-        )}
+        {showWatchMe && <WatchMePanel key={`${plan.id}:${step.id}`} step={step} />}
       </main>
 
       <div className="pointer-events-none fixed inset-x-0 bottom-[164px] z-20 mx-auto flex w-full max-w-[640px] flex-col gap-3 px-4">
         <div className="pointer-events-auto flex flex-col gap-3">
-          {latestVerdict?.kind === "verdict" && (
-            <VerdictCard
-              card={latestVerdict}
-              onDismiss={() =>
-                useStore.setState((state) => ({
-                  cards: state.cards.filter((c) => c !== latestVerdict),
-                }))
-              }
-            />
+          {heartbeat && <HeartbeatToast card={heartbeat} />}
+          {verdict && verdict !== dismissed && (
+            <VerdictCard card={verdict} onDismiss={() => setDismissed(verdict)} />
           )}
-          {latestHeartbeat?.kind === "heartbeat" && <HeartbeatToast card={latestHeartbeat} />}
         </div>
       </div>
 
       <ControlCluster
-        onPrev={() => useStore.getState().prev()}
-        onNext={() => useStore.getState().next()}
-        prevDisabled={stepIndex === 0}
-        nextDisabled={stepIndex === storePlan.steps.length - 1}
-        onToggleTimer={() => {
-          if (activeTimer) useStore.getState().cancelTimer();
-          else if (currentStep.durationSec) useStore.getState().startTimer(currentStep.durationSec);
-        }}
-        timerActive={activeTimer !== undefined}
-        timerDisabled={activeTimer === undefined && currentStep.durationSec === undefined}
+        onPrev={controls.onPrev}
+        onNext={controls.onNext}
+        onToggleTimer={controls.onToggleTimer}
+        timerActive={controls.timerActive}
+        timerDisabled={!controls.timerAvailable}
         novoice={flags.novoice}
-        onMic={
-          showWatchMe
-            ? () => document.getElementById("watch-me")?.scrollIntoView({ block: "start" })
-            : undefined
-        }
-        camera={<CameraCapture onCapture={flags.fixture ? undefined : handleCapture} />}
+        camera={<CameraCapture onCapture={flags.fixture ? undefined : vision.check} />}
       />
-    </AppShell>
+    </>
   );
 }

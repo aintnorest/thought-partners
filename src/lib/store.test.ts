@@ -124,4 +124,28 @@ describe("useStore", () => {
       { kind: "watch_ready", stepId: "first", line: "Glossy and even." },
     ]);
   });
+
+  it("fills only missing image URLs without changing walkthrough state", () => {
+    useStore.getState().setPlan({
+      ...plan,
+      steps: plan.steps.map((step) =>
+        step.id === "second" ? { ...step, imageUrl: "existing-image" } : step,
+      ),
+    });
+    useStore.getState().goto(1);
+    useStore.getState().startTimer(5);
+    const { activeTimer, generation, stepIndex } = useStore.getState();
+
+    useStore.getState().applyImageUrls({
+      first: "generated-image",
+      second: "replacement-image",
+    });
+
+    const state = useStore.getState();
+    expect(state.plan?.steps[0].imageUrl).toBe("generated-image");
+    expect(state.plan?.steps[1].imageUrl).toBe("existing-image");
+    expect(state.stepIndex).toBe(stepIndex);
+    expect(state.generation).toBe(generation);
+    expect(state.activeTimer).toBe(activeTimer);
+  });
 });

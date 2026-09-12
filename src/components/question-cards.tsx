@@ -20,9 +20,7 @@ export function QuestionCards({
           key={`${cascadeKey}-${i}`}
           onClick={() => onSelect(q)}
           className={`rounded-full border px-4 py-3 min-h-14 text-left text-warm-off-white animate-cascade-in ${
-            q === activeQuestion
-              ? "border-ember text-ember"
-              : "border-whisper-warm"
+            q === activeQuestion ? "border-ember text-ember" : "border-whisper-warm"
           }`}
           style={{ animationDelay: `${i * 60}ms` }}
         >

@@ -29,6 +29,7 @@ export interface StoreState {
   generation: number;
   watch: WatchState;
   setPlan(plan: RecipePlan): void;
+  applyImageUrls(urls: Record<string, string>): void;
   next(): void;
   prev(): void;
   repeat(): void;
@@ -70,6 +71,21 @@ export const useStore = create<StoreState>()((set, get) => ({
   watch: idleWatch(),
   setPlan: (plan) =>
     set((state) => ({ plan, stepIndex: 0, watch: idleWatch(), ...invalidateTimer(state) })),
+  applyImageUrls: (urls) => {
+    const plan = get().plan;
+    if (!plan || !plan.steps.some((step) => urls[step.id] && !step.imageUrl)) {
+      return;
+    }
+
+    set({
+      plan: {
+        ...plan,
+        steps: plan.steps.map((step) =>
+          urls[step.id] && !step.imageUrl ? { ...step, imageUrl: urls[step.id] } : step,
+        ),
+      },
+    });
+  },
   next: () =>
     set((state) => ({
       stepIndex: clampIndex(state, state.stepIndex + 1),

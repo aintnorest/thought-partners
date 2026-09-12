@@ -1,12 +1,6 @@
 import type { StepKind } from "@/lib/types";
 
-export function StepKindIcon({
-  kind,
-  className,
-}: {
-  kind: StepKind;
-  className?: string;
-}) {
+export function StepKindIcon({ kind, className }: { kind: StepKind; className?: string }) {
   const baseClasses = "text-current";
   const classes = className ? `${baseClasses} ${className}` : baseClasses;
 

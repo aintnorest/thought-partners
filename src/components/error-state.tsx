@@ -1,12 +1,6 @@
 "use client";
 
-export function ErrorState({
-  message,
-  onRetry,
-}: {
-  message: string;
-  onRetry: () => void;
-}) {
+export function ErrorState({ message, onRetry }: { message: string; onRetry: () => void }) {
   return (
     <div className="rounded-3xl border border-brick/40 bg-raised-charcoal p-6 flex flex-col gap-4">
       <p className="text-brick">{message}</p>

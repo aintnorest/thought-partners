@@ -18,7 +18,10 @@ export function ImagePanel({
   }
 
   return (
-    <div className="relative w-full overflow-hidden rounded-3xl border border-whisper-warm" style={{ aspectRatio: "4/3" }}>
+    <div
+      className="relative w-full overflow-hidden rounded-3xl border border-whisper-warm"
+      style={{ aspectRatio: "4/3" }}
+    >
       {/* Shimmer skeleton layer */}
       {imageUrl && (
         <div className="absolute inset-0 overflow-hidden bg-raised-charcoal">

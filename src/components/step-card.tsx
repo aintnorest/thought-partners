@@ -18,9 +18,7 @@ export function StepCard({ step }: { step: Step }) {
       {/* Kind chip with icon */}
       <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-whisper-warm px-3 py-1">
         <StepKindIcon kind={step.kind} className="h-4 w-4" />
-        <span className="text-sm uppercase tracking-[0.08em] text-stone-gray">
-          {kindLabel}
-        </span>
+        <span className="text-sm uppercase tracking-[0.08em] text-stone-gray">{kindLabel}</span>
       </div>
 
       {/* Title */}

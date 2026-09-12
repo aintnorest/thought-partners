@@ -28,11 +28,7 @@ export function VerdictCard({
   }
 
   return (
-    <div
-      className={`flex gap-4 ${
-        dismissing ? "animate-collapse-out" : "animate-rise-in"
-      }`}
-    >
+    <div className={`flex gap-4 ${dismissing ? "animate-collapse-out" : "animate-rise-in"}`}>
       <div className={`w-1 shrink-0 rounded-full ${railColor}`} />
       <div className="flex-1 bg-raised-charcoal rounded-3xl p-5">
         <div className="flex justify-between items-start gap-4">
@@ -40,8 +36,7 @@ export function VerdictCard({
             <p className="text-warm-off-white">{card.verdict.observed}</p>
             {card.verdict.fix && (
               <p className="text-stone-gray text-sm mt-2">
-                <span className="text-sm uppercase tracking-[0.08em]">Fix:</span>{" "}
-                {card.verdict.fix}
+                <span className="text-sm uppercase tracking-[0.08em]">Fix:</span> {card.verdict.fix}
               </p>
             )}
           </div>

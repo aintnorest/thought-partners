@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { JetBrains_Mono, Outfit } from "next/font/google";
 import type { ReactNode } from "react";
+import { Providers } from "@/components/providers";
 import { ServiceWorkerRegistrar } from "@/components/service-worker-registrar";
 import { AppBootstrap } from "@/lib/glue/app-bootstrap";
 import "./globals.css";
@@ -41,7 +42,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" className={`${outfit.variable} ${jetbrainsMono.variable}`}>
       <body className="min-h-dvh bg-cast-iron text-warm-off-white antialiased">
-        <AppBootstrap>{children}</AppBootstrap>
+        <AppBootstrap>
+          <Providers>{children}</Providers>
+        </AppBootstrap>
         <ServiceWorkerRegistrar />
       </body>
     </html>

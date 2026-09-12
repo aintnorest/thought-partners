@@ -21,9 +21,7 @@ export function ImportForm({
     <div className="flex flex-col gap-6">
       <form onSubmit={handleSubmit} className="flex flex-col gap-6">
         <div>
-          <label className="text-sm uppercase tracking-[0.08em] text-stone-gray">
-            Recipe URL
-          </label>
+          <label className="text-sm uppercase tracking-[0.08em] text-stone-gray">Recipe URL</label>
           <input
             type="url"
             value={url}
@@ -43,10 +41,6 @@ export function ImportForm({
             rows={6}
             className="mt-2 w-full rounded-2xl border border-whisper-warm bg-transparent px-4 py-3 text-warm-off-white leading-[1.55] focus:border-ember focus:outline-none focus:ring-2 focus:ring-ember"
           />
-          <p className="text-stone-gray text-sm mt-2">
-            Recipe import is still wiring up — for now this loads the Carbonara
-            sample plan.
-          </p>
         </div>
 
         <button
