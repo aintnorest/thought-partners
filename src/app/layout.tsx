@@ -1,8 +1,12 @@
 import type { Metadata, Viewport } from "next";
+import { JetBrains_Mono, Outfit } from "next/font/google";
 import type { ReactNode } from "react";
 import { ServiceWorkerRegistrar } from "@/components/service-worker-registrar";
 import { AppBootstrap } from "@/lib/glue/app-bootstrap";
 import "./globals.css";
+
+const outfit = Outfit({ subsets: ["latin"], variable: "--font-outfit" });
+const jetbrainsMono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-jetbrains-mono" });
 
 export const metadata: Metadata = {
   applicationName: "Jacques",
@@ -35,8 +39,8 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
-      <body className="min-h-dvh bg-neutral-950 text-neutral-100 antialiased">
+    <html lang="en" className={`${outfit.variable} ${jetbrainsMono.variable}`}>
+      <body className="min-h-dvh bg-cast-iron text-warm-off-white antialiased">
         <AppBootstrap>{children}</AppBootstrap>
         <ServiceWorkerRegistrar />
       </body>

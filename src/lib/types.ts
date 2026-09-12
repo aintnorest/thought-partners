@@ -45,4 +45,18 @@ export interface HeartbeatCard {
   line: string;
 }
 
-export type Card = HeartbeatCard;
+export interface VerdictCard {
+  kind: "verdict";
+  stepId: string;
+  verdict: VisionVerdict;
+}
+
+export interface AnswerCard {
+  kind: "answer";
+  stepId: string;
+  question: string;
+  text: string;
+  streaming: boolean;
+}
+
+export type Card = HeartbeatCard | VerdictCard | AnswerCard;

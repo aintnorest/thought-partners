@@ -11,18 +11,18 @@
 
 Decisions already made at setup (2026-09-12): **Built-in CopilotKit agent** (`BuiltInAgent` runs inside the CopilotKit Runtime in this Next.js app — no separate agent server), managed project **`jacques`** (slug recorded in `.copilotkit/project.json`), Intelligence key `CPK_INTELLIGENCE_API_KEY` already in `.env` (git-ignored, verified).
 
-**Superseded by the merge:** the original setup wizard picked OpenAI directly and had the developer add `OPENAI_API_KEY` to `.env`. `origin/main` has since cut the whole project over to a single `OPENROUTER_API_KEY` proxied through `@openrouter/ai-sdk-provider` (`docs/PLAN.md` §2, `src/lib/models.ts`, `.env.example`) — every other model call (plan, ask, vision, heartbeat, images) already goes through it. The `BuiltInAgent` must follow the same convention instead of a direct OpenAI key: construct it with a custom AI SDK model from the OpenRouter provider, not the `"openai:gpt-5.4-mini"` string form. **Action before the next build session:** add `OPENROUTER_API_KEY` to `.env` (the stray `OPENAI_API_KEY` can stay or be removed — the agent will not read it).
+**Superseded by the merge, then corrected by `integration-plan.md` §7.3:** the original setup wizard picked OpenAI directly and had the developer add `OPENAI_API_KEY` to `.env`. `origin/main` has since cut the whole project over to a single `OPENROUTER_API_KEY` (`docs/PLAN.md` §2, `src/lib/models.ts`, `.env.example`). Building the agent's model with `@openrouter/ai-sdk-provider` is **not** possible, though: `@copilotkit/runtime@1.71.1` depends on `ai@^6` (`@ai-sdk/provider@3.x`) while this repo and that provider are on `ai@7` (`@ai-sdk/provider@4.x`) — a provider-spec major apart. The runtime resolves its own `"provider/model"` strings through its bundled `@ai-sdk/openai` (`resolveModel` → `createOpenAI({ apiKey, baseURL: process.env.OPENAI_BASE_URL })`), so the single-credential rule is kept with the string form instead (0.4). **Action before the next build session:** add `OPENROUTER_API_KEY` and `OPENAI_BASE_URL=https://openrouter.ai/api/v1` to `.env`; the stray `OPENAI_API_KEY` is unread and can be removed.
 
 | # | Step | Files | Validation |
 | --- | --- | --- | --- |
 | 0.1 | Add `@copilotkit/react-core` + `@copilotkit/runtime` (latest; no existing dependency moves — `@openrouter/ai-sdk-provider` is already installed; revert = restore `package.json` + lockfile and reinstall) | `package.json`, `pnpm-lock.yaml` | `pnpm install && pnpm typecheck` |
 | 0.2 | Document `CPK_INTELLIGENCE_API_KEY` alongside the existing `OPENROUTER_API_KEY` | `.env.example` | — |
 | 0.3 | Add an `agent` model id to the existing pin map, reusing the project's OpenRouter model choice (`MODELS.agent = "openai/gpt-5-mini"`, same as `ask`) — additive, announce to Track A before landing | `src/lib/models.ts` *(edit)* | `pnpm typecheck` |
-| 0.4 | Runtime route: build the model via `createOpenRouter({ apiKey: process.env.OPENROUTER_API_KEY! })(MODELS.agent)` from `@openrouter/ai-sdk-provider`, pass it as `BuiltInAgent({ model })`. `CopilotRuntime({ agents: { default: builtInAgent }, intelligence: new CopilotKitIntelligence({ apiKey: process.env.CPK_INTELLIGENCE_API_KEY! }), identifyUser })` + `createCopilotRuntimeHandler({ runtime, basePath: "/api/copilotkit" })`, export GET+POST. `identifyUser` is **required**. All imports from `@copilotkit/runtime/v2`. | `src/app/api/copilotkit/[[...slug]]/route.ts` *(new)* | `curl localhost:3000/api/copilotkit/info` returns agent metadata |
+| 0.4 | Runtime route: `new BuiltInAgent({ model: `openai/${MODELS.agent}`, apiKey: process.env.OPENROUTER_API_KEY!, prompt: systemPrompt, maxSteps: 4 })` — the leading `openai/` selects the provider, the rest stays the full OpenRouter id; `OPENAI_BASE_URL` points at OpenRouter. `maxSteps` **must** be raised from its default of `1`, or the agent emits a tool call and never speaks after it. Then `CopilotRuntime({ agents: { default: builtInAgent }, intelligence: new CopilotKitIntelligence({ apiKey: process.env.CPK_INTELLIGENCE_API_KEY! }), identifyUser })` + `createCopilotRuntimeHandler({ runtime, basePath: "/api/copilotkit" })`, export GET+POST. `identifyUser` is **required**. All imports from `@copilotkit/runtime/v2`. | `src/app/api/copilotkit/[[...slug]]/route.ts` *(new)* | `curl localhost:3000/api/copilotkit/info` returns agent metadata |
 | 0.5 | Client `Providers`: `CopilotKitProvider runtimeUrl="/api/copilotkit"` (omit `useSingleEndpoint` — auto transport) + `import "@copilotkit/react-core/v2/styles.css"`; mount **inside** `AppBootstrap`'s children in root layout, so `useStore`/`useFlags` and CopilotKit hooks are both available to `page.tsx` | `src/components/providers.tsx` *(new)*, `src/app/layout.tsx` *(edit — one added wrapper line around `{children}`)* | Inspector button appears in dev build |
-| 0.6 | Generative-UI registry + `useAgentContext` (§4 below) | `src/lib/copilot-registry.tsx` *(new)*, `src/app/page.tsx` *(edit)* | Inspector → Frontend Tools lists all four registrations |
+| 0.6 | Agent bridge: `useAgentContext` ×2 + `useFrontendTool` ×3 (`integration-plan.md` §6) | `src/lib/hooks/use-agent-bridge.ts` *(new)*, `src/app/page.tsx` *(edit)* | Inspector → Frontend Tools lists `highlight_step`, `start_timer`, `show_heartbeat` |
 
-The runtime route and `models.ts` sit in Track A/C territory; everything from §1 down is Track B. The system prompt on `BuiltInAgent` (Track A) must name the four registry tools — the model only calls tools the prompt names.
+The runtime route and `models.ts` sit in Track A/C territory; everything from §1 down is Track B. The system prompt on `BuiltInAgent` (Track A) must name those three tools — the model only calls tools the prompt names. How every component actually receives its data — hook signatures, cancellation, fallbacks, failure states — is `docs/features/walkthrough-ui/integration-plan.md`.
 
 ---
 
@@ -70,7 +70,7 @@ export const useStore: UseBoundStore<StoreApi<StoreState>>;
 export function selectActiveTimer(state: StoreState): ActiveTimer | undefined; // undefined once naturally expired, computed from Date.now()
 ```
 
-`Card` today is `HeartbeatCard = { kind: "heartbeat"; stepId: string; line: string }` only (`src/lib/types.ts`). This plan needs two more discriminants for the CopilotKit surfaces — **additive, optional-only, announce before landing**, exactly like every other frozen-contract change:
+`Card` now carries all three discriminants in `src/lib/types.ts` — the additive change below has **landed**; no further type churn is needed. One store action is still missing (`applyImageUrls`, `integration-plan.md` §5.2/D5) and must be announced before it lands:
 
 ```ts
 export interface VerdictCard { kind: "verdict"; stepId: string; verdict: VisionVerdict }
@@ -109,34 +109,35 @@ Managed CopilotKit (Intelligence platform) hosts the agent; the app authenticate
 
 ### 4.2 Agent context — `useAgentContext`
 
-One hook in `page.tsx`, called only once a plan is active, keeps the agent grounded — mirroring what the voice session gets (`docs/PLAN.md` §4C). Note the v2 wire format: non-string values arrive at the agent JSON-stringified, so keep the value flat and small.
+Two registrations in the walkthrough subtree, live only once a plan is active, keep the agent grounded — mirroring what the voice session gets (`docs/PLAN.md` §4C). Split stable from volatile: the v2 wire format JSON-stringifies non-string values and re-registers on every change, so the per-step payload stays small (`integration-plan.md` §6.2).
 
 ```ts
-useAgentContext({
-  description: "Current recipe plan and where the cook is",
-  value: { plan: plan?.title, step: currentStep, stepIndex, doneWhen: currentStep?.doneWhen },
-});
+useAgentContext({ description: "The recipe being cooked",
+  value: { title, servings, steps: steps.map(s => ({ id: s.id, kind: s.kind, title: s.title })) } });
+
+useAgentContext({ description: "Where the cook is right now",
+  value: { stepId, index, of, title, detail, doneWhen, ingredients, tools, timerRunning } });
 ```
 
-### 4.3 Generative UI — typed registry via `useComponent` + `useFrontendTool`
+### 4.3 Agent-invoked UI — typed frontend tools
 
-The registry is the code form of `docs/PLAN.md` §2: agent output selects and fills a component; it never emits markup. Registered once in `src/lib/copilot-registry.tsx` (client module, imported by `page.tsx`). Two hook shapes from `@copilotkit/react-core/v2`:
+The registry is the code form of `docs/PLAN.md` §2: agent output selects and fills typed structures; it never emits markup. Registered once in `src/lib/hooks/use-agent-bridge.ts` (client module, called from `page.tsx`). Full handler bodies, validation rules, and rationale: `integration-plan.md` §6.3.
 
-- **`useComponent({ name, description, parameters: zodSchema, render })`** — component-as-tool for cards the agent fills. Zod validates the model's arguments before they reach the component.
-- **`useFrontendTool({ name, description, parameters, handler })`** — for actions that mutate app state instead of rendering.
+`useComponent` is **not** used. Its docstring is explicit that it registers "a React component as a frontend tool renderer *in chat*" — the render is mounted by the chat message view, and `DESIGN.md` §5 bans all chat chrome, so those renders would never appear. Every agent action therefore goes through `useFrontendTool({ name, description, parameters, handler })`, whose handler writes to the store; the deterministic walkthrough re-renders from state. The zod `parameters` schema is still the typed component contract — it validates the model's arguments before they reach app state.
 
-| Registration | Kind | Renders / does | Filled from |
-| --- | --- | --- | --- |
-| `show_verdict` | `useComponent` → `VerdictCard` | `{ status, observed, fix }` — mirrors `VisionVerdict`; also pushed to store as a `verdict` card so it survives re-render. |
-| `show_heartbeat` | `useComponent` → `HeartbeatToast` | `{ line }` ≤ 20 words; also `pushCard({kind:"heartbeat"})`. |
-| `answer_question` | `useComponent` → `AnswerPanel` | `{ text, streaming }` written through to an `answer` card; `streaming` drives the shimmer. |
-| `highlight_step` | `useFrontendTool` | `{ stepId }` → `store.goto(indexOf(stepId))` — agent-driven navigation, same store action the buttons and voice use. |
+| Tool | Params | Handler |
+| --- | --- | --- |
+| `highlight_step` | `{ stepId }` | validate against `plan.steps`; `store.goto(index)` — same action the buttons, keyboard, and voice use. Unknown id → returns an error string, no state change. |
+| `start_timer` | `{ seconds? }` | `store.startTimer(seconds ?? step.durationSec)`; refuses when neither exists. |
+| `show_heartbeat` | `{ line }` ≤ 20 words | `pushCard({ kind: "heartbeat", stepId: <from store>, line })` → `HeartbeatToast`. |
 
-The Built-in Agent only calls tools its prompt names — the system prompt (Track A, in the runtime route) must name each verb and when to use it. Names must not collide with any backend tool. All registrations are typed against the frozen `types.ts` — the registry is where the frozen contract meets the agent, so it is the single file that changes if a field is added additively.
+Dropped from the earlier draft: `answer_question` (assistant text already streams token-wise, while tool args arrive as partial JSON — plain text is faster and simpler) and `show_verdict` (the agent has no photo; a verdict tool is a fabrication vector — verdicts come from `/api/vision`). `VerdictCard` and `AnswerPanel` are unaffected: both render from the store either way.
+
+Handlers read `useStore.getState()` rather than closure state, so registration needs no `deps` and can never act on a stale step. The Built-in Agent only calls tools its prompt names — the system prompt (Track A, in the runtime route) must name these three verbs and when to use each. Names must not collide with the voice tool set (`docs/PLAN.md` §2), which is a separate transport.
 
 ### 4.4 Q&A path
 
-`QuestionCards` tap → an agent run through the runtime (the agent answers with full plan context; text streams into the `answer` card that `AnswerPanel` renders). No `CopilotSidebar`/`CopilotChat` chrome anywhere — the walkthrough is the chat surface (`DESIGN.md` §5 bans it). Fallback per the frozen API surface: `POST /api/ask` text stream (`docs/PLAN.md` §3) when the runtime is unreachable. Both paths write the same `answer` card, so `AnswerPanel` never knows which served it. Under `?fixture=1`, Q&A shows the "offline demo" placeholder rather than calling anything (`system-design.md` §6). The CopilotKit Inspector (dev builds only) is the verification surface for agent registration, tool registration, and AG-UI events.
+`QuestionCards` tap → an agent run through the runtime (grounded by the two `useAgentContext` registrations; assistant text streams into the `answer` card that `AnswerPanel` renders). The run **must** go through `copilotkit.runAgent({ agent })` from `useCopilotKit()`, not `agent.runAgent()` — only the core path executes registered frontend tools. No `CopilotSidebar`/`CopilotChat` chrome anywhere — the walkthrough is the chat surface (`DESIGN.md` §5 bans it). Fallback per the frozen API surface: `POST /api/ask` text stream (`docs/PLAN.md` §3) when the runtime is unreachable; both paths write the same `answer` card, so `AnswerPanel` never knows which served it. Under `?fixture=1`, Q&A shows the "offline demo" placeholder rather than calling anything (`system-design.md` §6). Cancellation, serialization, and the failure ladder: `integration-plan.md` §5.3. The CopilotKit Inspector (dev builds only) is the verification surface for agent registration, tool registration, and AG-UI events.
 
 ### 4.5 What CopilotKit deliberately does NOT do
 
@@ -169,8 +170,8 @@ flowchart LR
 | --- | --- | --- | --- |
 | **B1 Shell + import form** | `app-shell.tsx`, `import-form.tsx`, `providers.tsx`, `src/app/page.tsx` (import-form branch), globals/tokens per DESIGN.md | `/` renders the import screen in DESIGN.md tokens; submitting text/URL calls `store.setPlan()` (fixture-backed until Track A's `/api/import` is live). | T+0:15–1:15 |
 | **B2 Walkthrough core** | `timeline.tsx`, `step-card.tsx`, `step-kind-icon.tsx`, `timer.tsx`, `control-cluster.tsx`, `src/app/page.tsx` (walkthrough branch), keyboard shortcuts | Fixture renders the full walkthrough: timeline advances, timer counts down with ring + amber final-10s, `→ ← r` work, one step per screen on a phone viewport. Screen-shared as proof. | Checkpoint 1 (T+1:15): live `/api/import` renders here |
-| **B3 Q&A + images + camera** | `question-cards.tsx`, `answer-panel.tsx`, `image-panel.tsx`, `camera-capture.tsx`, `src/lib/copilot-registry.tsx`, `useAgentContext` wiring in `page.tsx` | 3 question cards cascade per step; tap → streamed answer inline (runtime path + `/api/ask` fallback); image skeleton→fade, empty state when no `imageUrl`, hidden under `?noimages=1`; camera posts to `/api/vision`. | Checkpoint 2 (T+2:15): P0+P1 end-to-end on a phone |
-| **B4 Verdict + heartbeat + states** | `verdict-card.tsx`, `heartbeat-toast.tsx`, `error-state.tsx`, additive `VerdictCard`/`AnswerCard` types (§2) | Photo → verdict card with correct rail color; heartbeat toast appears at each `attentionSec` tick and dies on step change (already proven by Track C's scheduler — this slice is the visuals); import/stream/vision failures render `ErrorState` with retry; fixture mode runs with network disabled after prewarm. | Feature freeze (T+3:15) |
+| **B3 Q&A + images + camera** | `question-cards.tsx`, `answer-panel.tsx`, `image-panel.tsx`, `camera-capture.tsx`, `src/lib/hooks/{use-answer,use-agent-bridge,use-step-images}.ts` | 3 question cards cascade per step; tap → streamed answer inline (runtime path + `/api/ask` fallback), run stops on navigation; image skeleton→fade, empty state when no `imageUrl`, hidden under `?noimages=1`; camera posts to `/api/vision`. | Checkpoint 2 (T+2:15): P0+P1 end-to-end on a phone |
+| **B4 Verdict + heartbeat + states** | `verdict-card.tsx`, `heartbeat-toast.tsx`, `error-state.tsx`, `src/lib/hooks/use-vision-check.ts` | Photo → verdict card with correct rail color; heartbeat toast appears at each `attentionSec` tick and dies on step change (already proven by Track C's scheduler — this slice is the visuals); import/stream/vision failures render `ErrorState` with retry; fixture mode runs with network disabled after prewarm. | Feature freeze (T+3:15) |
 
 Cut order if a checkpoint slips (`docs/PLAN.md` §5): B4's heartbeat/verdict polish first, then camera, never the P0 walkthrough or Q&A.
 
@@ -184,16 +185,16 @@ Cut order if a checkpoint slips (`docs/PLAN.md` §5): B4's heartbeat/verdict pol
 CopilotKit round-trip proof (the integration is not done without these):
 
 1. **Runtime discovery:** `curl -s localhost:3000/api/copilotkit/info` lists the `default` agent. (A green chat alone proves nothing — an unwired Intelligence client still answers.)
-2. **Inspector (dev):** Agents pane lists the agent; Frontend Tools lists `show_verdict`, `show_heartbeat`, `answer_question`, `highlight_step`; AG-UI Events move during a run.
+2. **Inspector (dev):** Agents pane lists the agent; Frontend Tools lists `highlight_step`, `start_timer`, `show_heartbeat`; AG-UI Events move during a run. Invoking `highlight_step` from the Inspector must move the walkthrough — that proves handler → store → UI without depending on the model.
 3. **Intelligence persistence:** send one message through the app's Q&A surface, then open the managed dashboard for project `jacques` — a new thread must appear. No thread = the runtime never reached the platform.
 4. **Offline kill switch:** prewarm `/?fixture=1` (load online, service worker activates, reload twice), then disable network — full walkthrough still renders; Q&A/camera show "offline demo" placeholders.
 
 ## 8. Resolved at setup (2026-09-12), reconciled against `origin/main` merge (2026-09-12)
 
 - **Connection mode:** runtime route inside this Next.js app (`/api/copilotkit`, multi-route handler) + managed Intelligence via server-side `CPK_INTELLIGENCE_API_KEY`. No browser-visible key; `providers.tsx` isolates the wiring.
-- **API generation:** v2 (`@copilotkit/react-core/v2`, `@copilotkit/runtime/v2`) — `useComponent`/`useFrontendTool`/`useAgentContext`, not the v1 `useCopilotAction`/`useCopilotReadable`.
-- **Model vendor — superseded:** the original setup used a direct `openai:gpt-5.4-mini` string and a standalone `OPENAI_API_KEY`. The merge cut the whole project over to a single `OPENROUTER_API_KEY` (`docs/PLAN.md` §2). The `BuiltInAgent` must build its model from `@openrouter/ai-sdk-provider` instead (§0.4); `OPENROUTER_API_KEY` still needs to be added to `.env` before the next build session.
+- **API generation:** v2 (`@copilotkit/react-core/v2`, `@copilotkit/runtime/v2`) — `useFrontendTool`/`useAgentContext`/`useAgent`/`useCopilotKit`, not the v1 `useCopilotAction`/`useCopilotReadable`. `useComponent` is deliberately unused (§4.3).
+- **Model vendor — superseded twice:** the original setup used a direct `openai:gpt-5.4-mini` string and a standalone `OPENAI_API_KEY`; the merge cut the project over to a single `OPENROUTER_API_KEY` (`docs/PLAN.md` §2). A `@openrouter/ai-sdk-provider` model instance cannot be handed to `BuiltInAgent` (AI SDK major mismatch, §0 and `integration-plan.md` §7.3), so the agent uses the runtime's own `"openai/<openrouter-id>"` string form with `apiKey: OPENROUTER_API_KEY` and `OPENAI_BASE_URL` pointed at OpenRouter. Both env vars still need adding to `.env` before the next build session.
 - **Routing — superseded:** the original draft assumed an `(app)` route group with `/` and `/cook`. The merge shipped Track C's decision to reduce `src/app/page.tsx` to a single conditionally-rendered page instead (§3); there is no `/cook` route.
-- **Store contract — superseded:** the original draft's `timers: Record<...>` / `lastVerdict` shape was speculative. `src/lib/store.ts` shipped with `activeTimer` (single) + `generation` + `cancelTimer()`; §2 now documents the real contract and the additive `Card` variants this plan still needs.
+- **Store contract — resolved:** the original draft's `timers: Record<...>` / `lastVerdict` shape was speculative. `src/lib/store.ts` shipped with `activeTimer` (single) + `generation` + `cancelTimer()`, and the `Card` union now carries all three discriminants plus `setAnswer`. The one remaining gap is `applyImageUrls` for image backfill (`integration-plan.md` §5.2).
 - **Track A `/api/ask` timing:** still a 501 stub as of the merge; B3 builds against the CopilotKit runtime path first and the fallback lands when the route does.
 - **Fixture images (Track C decision D3):** resolved — `public/images/carbonara/*.png` already exist and are wired into the fixture; `ImagePanel` needs no change, it already treats `imageUrl` as optional.

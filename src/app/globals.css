@@ -1,8 +1,113 @@
 @import "tailwindcss";
 
 @theme {
-  --color-paprika: #e8552d;
-  --color-cream: #fff7ed;
+  /* DESIGN.md §2 — dark theme, one warm accent. Ember is reserved for the accent role only. */
+  --color-cast-iron: #1b1916;
+  --color-raised-charcoal: #262320;
+  --color-warm-off-white: #f5f2ec;
+  --color-stone-gray: #a8a29a;
+  --color-whisper-warm: rgba(245, 242, 236, 0.09);
+  --color-ember: #de6b3f;
+  --color-herb: #5fa87a;
+  --color-saffron: #e2a33c;
+  --color-brick: #d9604f;
+
+  /* DESIGN.md §3 — Outfit for display/body, JetBrains Mono for anything read against a clock. */
+  --font-sans: var(--font-outfit), system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, monospace;
+
+  /* DESIGN.md §6 — spring feel (stiffness 100 / damping 20). Never linear. */
+  --ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
+
+  --animate-shimmer: shimmer 1.8s linear infinite;
+  --animate-ember-pulse: ember-pulse 2.6s ease-in-out infinite;
+  --animate-saffron-pulse: saffron-pulse 1.4s ease-in-out infinite;
+  --animate-ring-drift: ring-drift 6s linear infinite;
+  --animate-rise-in: rise-in 320ms var(--ease-spring) both;
+  --animate-cascade-in: cascade-in 360ms var(--ease-spring) both;
+  --animate-collapse-out: collapse-out 200ms var(--ease-spring) both;
+  --animate-float: float 3.4s ease-in-out infinite;
+}
+
+/* Transform & opacity only (DESIGN.md §6) — never width/height/top/left. */
+@keyframes shimmer {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes ember-pulse {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.45);
+  }
+}
+
+@keyframes saffron-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.55;
+  }
+}
+
+@keyframes ring-drift {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes cascade-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes collapse-out {
+  from {
+    opacity: 1;
+    transform: translateY(0) scaleY(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-4px) scaleY(0.96);
+  }
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
 }
 
 :root {
@@ -12,4 +117,37 @@
 html,
 body {
   min-height: 100%;
+}
+
+body {
+  background-color: var(--color-cast-iron);
+  color: var(--color-warm-off-white);
+  font-family: var(--font-sans);
+  /* Kitchen ergonomics: the page never rubber-bands under a fixed control cluster. */
+  overscroll-behavior-y: none;
+}
+
+/* Tabular figures everywhere mono is used — timers and quantities must not jitter. */
+.font-mono {
+  font-variant-numeric: tabular-nums;
+}
+
+::selection {
+  background-color: var(--color-ember);
+  color: var(--color-cast-iron);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-ember);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
