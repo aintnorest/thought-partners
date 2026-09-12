@@ -1,6 +1,37 @@
-# Jacques — Agentic Sous Chef
+# Jacques — an agentic sous chef embedded in the cook's walkthrough
+
+[![Jacques jackfruit taco demo showing the step-by-step cooking interface](public/demos/jackfruit-tacos.jpg)](https://youtu.be/iPtG0UWhNS8)
 
 Production: https://thought-partners-mu.vercel.app (auto-deploys from `main`).
+
+Video demo: [Watch Jacques on YouTube](https://youtu.be/iPtG0UWhNS8).
+
+## What it is and the problem it solves
+
+Jacques is a Next.js PWA that turns a pasted recipe URL or text into a structured, step-at-a-time cooking plan, then coaches you through it on a phone propped against a bowl. Cooking is the environment, and it is a hostile one for a chatbot: your hands are wet, your attention is on the pan, and "scroll up to re-read what you told me" is not an option. Jacques solves that by keeping a single, unambiguous current step in front of the cook — timer, doneness cue, technique image, and answers to "how small is finely diced?" — without the cook ever leaving that step. The whole loop runs end to end today: paste a recipe, get a plan, walk the steps, ask questions, start timers, get heartbeat nudges on long simmers, and snap a photo for a verdict — all backed by live server-side model calls.
+
+## Why the agent-in-context beats a standalone chatbot
+
+A standalone chatbot would make you re-describe your situation every turn. Jacques' agent is mounted inside the running walkthrough, so it already knows where you are and can change what you see. Two live context feeds stream the recipe and the cook's exact position — step id, index-of-total, detail, the `doneWhen` sensory cue, ingredients, tools, and whether a timer is running — into the model on every turn. And it doesn't just talk: three typed frontend tools (`highlight_step`, `start_timer`, `show_heartbeat`) mutate the same Zustand store the on-screen buttons do, so "start the timer" or "show me the folding step" moves the real UI, not a chat transcript. That bidirectional loop — the environment shapes what the agent sees, and the agent drives the environment through the same state a human touches — is the central pattern, and it is precisely what could not be reproduced in a standalone chatbox.
+
+## How the environment shapes the core workflow
+
+The design deliberately keeps the LLM at the leaves rather than improvising a live agent loop over the whole session. One structured generation produces the deterministic plan — watchable and testable — and the agent then operates within that plan's rails, which is what makes it demo-reliable rather than a latency-prone free-for-all. Every model surface is wrapped in graceful degradation: recipe import retries once on a schema failure and falls back to a committed fixture; agentic Q&A streams from the CopilotKit agent first and falls back to a plain streaming `/api/ask` route if the agent isn't ready, so a question is never dropped; heartbeat lines run under a hard 2.5-second timeout with a deterministic fallback; vision refuses to guess, returning `off` with "retake closer" when a photo is unclear; pre-generated technique images are cached by prompt hash and never block a step render. Navigation aborts in-flight requests and generation counters reject stale writes, so the UI never shows an answer for the wrong step.
+
+## Technical execution
+
+- Framework: Next.js 16 App Router, React 19, TypeScript, Tailwind v4, deployed to Vercel as an installable PWA (manifest, service worker, offline page).
+- Agent runtime: CopilotKit v2 (`@copilotkit/react-core` + `@copilotkit/runtime`) — a server-side `BuiltInAgent` (`maxSteps 4`) with the Jacques system prompt, exposed to the browser via `CopilotKitProvider` at `/api/copilotkit`; frontend tools and live context defined with `useFrontendTool` and `useAgentContext`.
+- Model access: Vercel AI SDK v7 (`ai`) through `@openrouter/ai-sdk-provider`. Every call is server-side; `OPENROUTER_API_KEY` never reaches the browser. Model pins live in one file (`src/lib/models.ts`), so a rate limit or outage is a one-line swap — `gpt-4.1-mini` for plan/ask/agent, `gpt-5-mini` for vision, `gpt-4.1-nano` for heartbeat.
+- Structured generation + safety: zod v4 mirrors the frozen `RecipePlan`/`VisionVerdict` contracts for `generateObject`, plus request validation and media size/type guards on every route.
+- State: a single Zustand store is the shared surface for buttons, timers, and agent tools alike.
+- Reliability: 92 Vitest tests across 24 files pass, covering routes, hooks, store, schemas, and the agent bridge; URL kill switches (`?fixture=1`, `?noimages=1`, `?novoice=1`, `?nowatch=1`) guarantee an offline, network-free demo path.
+
+## Usefulness and agentic experience
+
+The interface is kitchen-grade: huge type, dark shell, thumb-sized controls (previous, timer, mic, camera, next), one active step. The agent performs meaningful actions with the user always in control — it answers in ≤60-word imperative steps without losing your place, starts and cancels timers, surfaces coaching toasts on long steps, and returns one actionable fix from a photo — every result reflected in the same UI the cook also drives by hand. Context is used intelligently but never hijacks: manual controls always work, the agent shares state rather than owning it, and the kill switches hand explicit control back to the user. The result feels native to cooking rather than bolted on — a sous chef that keeps you on the same step it is helping with.
+
+**Honest scope:** the realtime endpoint currently validates and acknowledges microphone/camera media (Watch Me capture works on-device) but does not yet transcribe it or speak back; full realtime voice coaching (`gpt-audio-mini`) is pinned and planned, not connected, and the landing fixture's sample answers and verdicts are scripted UI examples. Everything described above under the agent, plan, Q&A, vision, heartbeat, and images is live against OpenRouter today.
 
 ## Run locally
 
@@ -12,12 +43,8 @@ pnpm dev                     # http://localhost:3000
 
 `pnpm test`, `pnpm typecheck`, `pnpm lint`, `pnpm build`.
 
-## Feature map
+## Repository resources
 
-Jacques is a PWA sous chef that turns recipes into a step-by-step cooking flow. The current repo includes the scaffold, fixture data, seeded recipes, sample Cooklang recipes, and planning docs for the AI-backed routes.
-
-- **Core walkthrough:** the shared components render the step timeline, instructions, timer, question/answer panels, photo verdicts, and heartbeat notices alongside Watch Me. The landing form currently loads the Carbonara sample; its answers and photo verdicts are explicitly scripted UI examples, not live AI results. `docs/PLAN.md` defines the target API-backed flow.
-- **Watch Me:** the walkthrough currently checks microphone input and camera capture. `docs/WATCH_ME_PLAN.md` describes the planned AI coaching; transcription, visual assessment, tool events, and spoken responses are not connected.
 - **Sample recipes:** `samples/cooklang/` contains curated Cooklang-style recipes grouped by `familiar/`, `exotic/`, and `centerpiece/`. See `samples/AGENTS.md` for the recipe conventions and `-- watch:` visual cue format.
 - **Design system:** `DESIGN.md` is the required visual source of truth for cooking screens.
 
