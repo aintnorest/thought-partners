@@ -1,5 +1,180 @@
 @import "tailwindcss";
-@import "./tokens.css";
+
+@theme {
+  /* DESIGN.md §2 — dark theme, one warm accent. Ember is reserved for the accent role only. */
+  --color-cast-iron: #1b1916;
+  --color-raised-charcoal: #262320;
+  --color-warm-off-white: #f5f2ec;
+  --color-stone-gray: #a8a29a;
+  --color-whisper-warm: rgba(245, 242, 236, 0.09);
+  --color-ember: #de6b3f;
+  --color-herb: #5fa87a;
+  --color-saffron: #e2a33c;
+  --color-brick: #d9604f;
+
+  /* Short aliases for the design-system reference page (src/app/design-system) — same values;
+     the DESIGN.md §2 names above remain canonical for product surfaces. */
+  --color-cast: var(--color-cast-iron);
+  --color-raised: var(--color-raised-charcoal);
+  --color-cream: var(--color-warm-off-white);
+  --color-stone: var(--color-stone-gray);
+  --color-whisper: var(--color-whisper-warm);
+
+  /* DESIGN.md §3 — Outfit for display/body, JetBrains Mono for anything read against a clock. */
+  --font-sans: var(--font-outfit), system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, monospace;
+
+  /* Type scale / shape / motion tokens used by the design-system reference page */
+  --text-step-title: clamp(2rem, 7vw, 3.25rem);
+  --text-step-detail: clamp(1.25rem, 3.5vw, 1.5rem);
+  --text-meta: 0.875rem;
+  --text-timer: clamp(3rem, 12vw, 5rem);
+  --radius-card: 1.5rem;
+  --radius-pill: 9999px;
+  --ease-jacques: cubic-bezier(0.22, 1, 0.36, 1);
+  --dur-step-cascade: 60ms;
+  --dur-verdict: 220ms;
+
+  /* DESIGN.md §6 — spring feel (stiffness 100 / damping 20). Never linear. */
+  --ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
+
+  --animate-shimmer: shimmer 1.8s linear infinite;
+  --animate-ember-pulse: ember-pulse 2.6s ease-in-out infinite;
+  --animate-saffron-pulse: saffron-pulse 1.4s ease-in-out infinite;
+  --animate-ring-drift: ring-drift 6s linear infinite;
+  --animate-rise-in: rise-in 320ms var(--ease-spring) both;
+  --animate-cascade-in: cascade-in 360ms var(--ease-spring) both;
+  --animate-collapse-out: collapse-out 200ms var(--ease-spring) both;
+  --animate-float: float 3.4s ease-in-out infinite;
+}
+
+/* Transform & opacity only (DESIGN.md §6) — never width/height/top/left. */
+@keyframes shimmer {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes ember-pulse {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.45);
+  }
+}
+
+@keyframes saffron-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.55;
+  }
+}
+
+@keyframes ring-drift {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes cascade-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes collapse-out {
+  from {
+    opacity: 1;
+    transform: translateY(0) scaleY(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-4px) scaleY(0.96);
+  }
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
+}
+
+/* Plain keyframes/utilities for the design-system reference page (src/app/design-system).
+   Named distinctly from the animate-* theme keys above to avoid @keyframes name collisions. */
+@keyframes shimmer-sweep {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes ring-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 var(--color-ember);
+    opacity: 1;
+  }
+  50% {
+    box-shadow: 0 0 0 6px transparent;
+    opacity: 0.6;
+  }
+}
+
+@keyframes amber-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.55;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .shimmer {
+    background: linear-gradient(90deg, var(--color-raised) 25%, #302c28 50%, var(--color-raised) 75%);
+    background-size: 200% 100%;
+    animation: shimmer-sweep 1.4s linear infinite;
+  }
+  .pulse-ember {
+    animation: ring-pulse 1.8s ease-in-out infinite;
+  }
+  .pulse-amber {
+    animation: amber-pulse 1.6s ease-in-out infinite;
+  }
+}
 
 :root {
   color-scheme: dark;
@@ -9,4 +184,37 @@ html,
 body {
   min-height: 100%;
   overflow-x: clip;
+}
+
+body {
+  background-color: var(--color-cast-iron);
+  color: var(--color-warm-off-white);
+  font-family: var(--font-sans);
+  /* Kitchen ergonomics: the page never rubber-bands under a fixed control cluster. */
+  overscroll-behavior-y: none;
+}
+
+/* Tabular figures everywhere mono is used — timers and quantities must not jitter. */
+.font-mono {
+  font-variant-numeric: tabular-nums;
+}
+
+::selection {
+  background-color: var(--color-ember);
+  color: var(--color-cast-iron);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-ember);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

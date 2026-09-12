@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { Card, RecipePlan } from "@/lib/types";
+import type { AnswerCard, Card, RecipePlan } from "@/lib/types";
 
 export interface ActiveTimer {
   stepId: string;
@@ -22,6 +22,7 @@ export interface StoreState {
   startTimer(sec: number): void;
   cancelTimer(): void;
   pushCard(card: Card): void;
+  setAnswer(card: AnswerCard): void;
 }
 
 /** Every transition that changes which step is current, or clears the timer, invalidates in-flight heartbeat work. */
@@ -64,6 +65,23 @@ export const useStore = create<StoreState>()((set, get) => ({
   },
   cancelTimer: () => set((state) => invalidateTimer(state)),
   pushCard: (card) => set((state) => ({ cards: [...state.cards, card] })),
+  // Streaming answers upsert in place instead of appending a card per token —
+  // `cards` stays an append-only log of discrete events (heartbeat, verdict),
+  // while the one live answer for a step is replaced as new text arrives.
+  setAnswer: (card) =>
+    set((state) => {
+      const index = state.cards.findLastIndex(
+        (existing) => existing.kind === "answer" && existing.stepId === card.stepId,
+      );
+
+      if (index === -1) {
+        return { cards: [...state.cards, card] };
+      }
+
+      const cards = state.cards.slice();
+      cards[index] = card;
+      return { cards };
+    }),
 }));
 
 export function selectActiveTimer(state: StoreState): ActiveTimer | undefined {
