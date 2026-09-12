@@ -26,13 +26,13 @@
 
 ## 2. Architecture decisions (locked — do not relitigate mid-build)
 
-- **One Next.js app** (App Router, TypeScript, Tailwind), deployed to Vercel. No separate backend, no DB. Server routes hold all keys.
+- **One Next.js app** (App Router, TypeScript, Tailwind), deployed to Vercel. No separate backend, no DB. Server routes hold the sole `OPENROUTER_API_KEY` and proxy every model call through OpenRouter.
 - **The backbone is a JSON plan, not a live agent loop.** One structured generation at import time (`generateObject` + zod) produces a `RecipePlan`. The walkthrough renders deterministically from it. Reason: an agent improvising the whole walkthrough live is unwatchable on stage (latency, drift) and untestable in 4 hours. LLM calls stay at the leaves: Q&A, images, vision verdict, heartbeat line, voice.
 - **"Generative UI" = typed component registry**, not AI SDK RSC (`streamUI`; RSC track is paused upstream). Each step has a `kind` (`prep` | `heat` | `wait` | `combine` | `plate` | `check`) and the UI picks a component per kind. Agent output selects and fills components; it does not emit markup.
-- **Voice:** OpenAI Realtime over **WebRTC** (`gpt-realtime-2.1-mini`), browser gets an ephemeral client secret from our server route (`POST /v1/realtime/client_secrets`) — never ship the API key. Realtime session gets the current step injected as context plus tools that mutate app state (`next_step`, `prev_step`, `repeat_step`, `start_timer`, `ask_question`). Voice controls the same store the buttons do.
-- **Images:** Gemini Flash Image (`gemini-3.1-flash-lite-image`, sub-2s target; fall back to `gemini-2.5-flash-image` or FLUX.1-schnell via fal) — **pre-generated at plan time**, cached by prompt hash, never blocking a step render. Style prompt is fixed (clean instructional sketch, white background, top-down) so the set looks coherent.
+- **Voice:** OpenRouter audio streaming (`openai/gpt-audio-mini`) through our server route — never ship the API key. The browser posts microphone turns and receives SSE audio/transcript/tool events. Each turn includes the current step plus tools that mutate app state (`next_step`, `prev_step`, `repeat_step`, `start_timer`, `ask_question`). Voice controls the same store the buttons do.
+- **Images:** OpenRouter Image API (`google/gemini-3.1-flash-lite-image`; fall back to `google/gemini-2.5-flash-image`) — **pre-generated at plan time**, cached by prompt hash, never blocking a step render. Style prompt is fixed (clean instructional sketch, white background, top-down) so the set looks coherent.
 - **Vision:** single multimodal call, photo + step context → strict JSON verdict. No agent loop.
-- **Model pins live in exactly one file** (`src/lib/models.ts`) so a rate limit or outage is a one-line swap.
+- **Model pins live in exactly one file** (`src/lib/models.ts`) as namespaced OpenRouter model IDs, so a rate limit or outage is a one-line swap.
 - **Fixture-first:** `src/fixtures/plan.carbonara.json` is committed in the first 15 minutes. UI work never waits on the parser, and the demo has a keyboard fallback if the network dies.
 
 ## 3. Frozen contracts (written at T+0:15, changed only by announcing in chat)
@@ -86,7 +86,7 @@ API surface (owner A implements, owners B/C consume):
 | `/api/ask` | POST | `{ planId, stepId, question, plan }` | text stream |
 | `/api/vision` | POST | multipart: `image`, `stepId`, `plan` | `VisionVerdict` |
 | `/api/heartbeat` | POST | `{ stepId, elapsedSec, plan }` | `{ line: string }` (≤ 20 words) |
-| `/api/realtime/token` | POST | `{}` | `{ client_secret, expires_at, model }` |
+| `/api/realtime` | POST | multipart: `audio?`, `image?`, `step`, `plan` | SSE audio, transcript, and tool events |
 
 Client state (owner B owns the store, owner C only calls its actions) — `src/lib/store.ts`, Zustand:
 
@@ -125,7 +125,7 @@ Owns `src/lib/realtime/**`, `src/app/api/realtime/**`, `src/app/layout.tsx`, `.e
 
 - **First 15 min: scaffold and push `main`** (`bunx create-next-app`, Tailwind, `src/lib/types.ts` verbatim from §3, fixture file, empty route handlers returning fixture/501). Everything else in the team unblocks off this commit.
 - **Deploy to Vercel before writing any voice code** — a broken deploy discovered at T+3:30 is a lost demo.
-- `useJacquesVoice()` hook: mint ephemeral token → WebRTC peer connection → mic track + remote audio element → register tools that call store actions → inject `plan` + current step on each `stepIndex` change (`session.update`), so Jacques always knows where we are.
+- `useJacquesVoice()` hook: capture microphone turns → POST to the server-side OpenRouter proxy → play streamed audio and handle transcript/tool events → call store actions. Send `plan` + current step with every turn so Jacques always knows where we are.
 - Heartbeat wiring: when a `wait` step's `attentionSec` elapses, `/api/heartbeat` → speak line via the live session if connected, else toast.
 - Owns merges, env keys, and the demo run-through. Also owns the **kill switches**: `?novoice=1`, `?fixture=1`, `?noimages=1`, `?nowatch=1`.
 
@@ -163,7 +163,7 @@ If Checkpoint 1 slips past T+1:35: cut vision (P2) and heartbeat (P3) immediatel
 | Image latency stalls the demo | pregen + cache; `imageUrl` is optional and the card renders without it |
 | Mic/room audio on stage | test with the actual laptop + a wired headset before T+3:15; `?novoice=1` exists |
 | Venue wifi dies | `?fixture=1` renders the full walkthrough with zero network; backup recording at T+3:40 |
-| Realtime cost/quota burn | `gpt-realtime-2.1-mini`, connect on click only, disconnect on unmount; don't leave a session open while coding |
+| Streaming voice cost/quota burn | `openai/gpt-audio-mini` through OpenRouter, start on click only, abort on stop/unmount; don't leave a stream open while coding |
 | Camera on laptop is bad | demo vision from a phone on the deployed URL |
 
 ## 8. Immediate next action

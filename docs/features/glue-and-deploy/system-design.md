@@ -1,6 +1,6 @@
 # Glue & Deploy — System Design
 
-**Feature:** Track C of `docs/PLAN.md` §4 minus the voice work (`useJacquesVoice()`, `src/lib/realtime/**`, `/api/realtime/token`). Voice is a separate feature; this design defines only the boundary it plugs into.
+**Feature:** Track C of `docs/PLAN.md` §4 minus the voice work (`useJacquesVoice()`, `src/lib/realtime/**`, `/api/realtime`). Voice is a separate feature; this design defines only the boundary it plugs into.
 **Sources:** `docs/PLAN.md` @ `7c9591d` (§2–§7), `docs/vision.md` @ `d832adb`, working tree @ `60cbf0d`.
 **Status:** decided after two review rounds; no open decisions.
 
@@ -23,7 +23,7 @@ flowchart LR
   Presenter -->|?fixture=1 / ?noimages=1 / ?novoice=1| Browser
   Browser -->|POST /api/heartbeat| Vercel
   Browser -->|reads| Fixture[src/fixtures/plan.carbonara.json]
-  Vercel -->|OPENAI_API_KEY, GOOGLE_GENERATIVE_AI_API_KEY, FAL_KEY| Providers[(OpenAI / Gemini / fal)]
+  Vercel -->|OPENROUTER_API_KEY| OpenRouter[OpenRouter]
 ```
 
 | Actor | Role at this boundary |
@@ -31,8 +31,8 @@ flowchart LR
 | Track A (server) | Consumes `src/lib/types.ts`, `src/lib/models.ts`, fixture; replaces stub route bodies in place. |
 | Track B (client) | Consumes `src/lib/types.ts`, fixture; owns `src/lib/store.ts` and the walkthrough UI that this feature's glue drives. |
 | Presenter | Toggles kill switches by URL; relies on `?fixture=1` when the venue network dies. |
-| Vercel | Hosts the single Next.js app; holds the provider keys. |
-| Model providers | Reached only from server routes; never from the browser. |
+| Vercel | Hosts the single Next.js app; holds the OpenRouter key. |
+| OpenRouter | Receives every model request from server routes; never from the browser. |
 
 ## 3. Components and responsibility boundaries
 
@@ -144,9 +144,9 @@ Error body for every stub this feature commits: `{ error: string }` with a 4xx/5
 | Route stubs for `docs/PLAN.md` §3 lines 81–88 | `[PROPOSED]` | Stub bodies only (§7). |
 | `src/lib/store.ts` `useStore`, `setPlan`, heartbeat `pushCard` discriminant, `selectActiveTimer` | `[PROPOSED, Track B implements]` | Signatures in §5. |
 | `src/lib/glue/flags.ts` `readFlags`, `src/lib/glue/app-bootstrap.tsx` `useFlags` | `[PROPOSED]` | Signatures in §6. |
-| `GET /api/health` `keys: { openai: boolean; google: boolean; fal: boolean }` | `[EXISTS]` route, `[PROPOSED]` field | Presence only, never values. Route reassigned to Track C (§13). |
-| `.env.example` keys `OPENAI_API_KEY`, `GOOGLE_GENERATIVE_AI_API_KEY`, `FAL_KEY` | `[PROPOSED]` | Only `OPENAI_API_KEY` exists today `[EXISTS]`. |
-| Installed deps `ai@7`, `@ai-sdk/openai@4`, `@ai-sdk/google@4`, `zod@4`, `zustand@5`, `@fal-ai/client@1` | `[EXISTS]` | Commit `60cbf0d`. |
+| `GET /api/health` `keys: { openrouter: boolean }` | `[PROPOSED]` | Presence only, never values. Route reassigned to Track C (§13). |
+| `.env.example` key `OPENROUTER_API_KEY` | `[PROPOSED]` | Replace the three current direct-provider keys during implementation. |
+| Provider deps `ai@7`, `@openrouter/ai-sdk-provider`, `zod@4`, `zustand@5` | `[PROPOSED]` | Remove the direct OpenAI, Google, and fal clients during implementation. |
 | Toolchain: `pnpm`, Next 16.3.5, Biome, Vitest | `[EXISTS]` | `docs/PLAN.md` §6/§8 say `bun`; superseded by decision D1. |
 | `public/sw.js` network-first navigations, `/api/*` never cached, cache-first static assets | `[EXISTS]` | Enables the offline fixture path without changes. |
 
@@ -190,7 +190,7 @@ Before checkpoint 1, C3's scheduler and bootstrap can be exercised against the s
 | Kill switches `?novoice=1`, `?fixture=1`, `?noimages=1` | `docs/PLAN.md` §4C bullet 5, §7 | C3 |
 | `src/app/layout.tsx` ownership | `docs/PLAN.md` §4C header | C3 (bootstrap mount) |
 | Merges, demo run-through, README/pitch, backup recording | `docs/PLAN.md` §4C bullet 5, §5 rows 3:15–4:00 | Demo-readiness tasks (not a slice) |
-| Voice hook, realtime token route | `docs/PLAN.md` §4C bullet 3 | Out of scope — voice feature |
+| Voice hook, OpenRouter stream route | `docs/PLAN.md` §4C bullet 3 | Out of scope — voice feature |
 
 ## 12. Durable-direction check
 
