@@ -18,7 +18,16 @@ export type Recipe = {
   steps: RecipeStep[];
 };
 
-const store = new Map<string, Recipe>();
+// A single in-memory store shared across every module that imports this file.
+// Keyed on globalThis so Next's dev HMR and separate route/page module graphs
+// resolve the same Map instead of re-seeding into divergent copies. This is a
+// single-instance store by design (POC, no DB); it does not span serverless
+// instances.
+const STORE_KEY = Symbol.for("jacques.recipes.store");
+const globalStore = globalThis as typeof globalThis & {
+  [STORE_KEY]?: Map<string, Recipe>;
+};
+const store: Map<string, Recipe> = (globalStore[STORE_KEY] ??= new Map<string, Recipe>());
 
 function slugify(value: string): string {
   return value
@@ -102,33 +111,37 @@ export function estimateTotalSeconds(recipe: Recipe): number {
 }
 
 // Seed a couple of recipes so the app and API have content out of the box.
-createRecipe({
-  title: "Classic French Omelette",
-  servings: 1,
-  steps: [
-    {
-      instruction: "Crack 3 eggs into a bowl, season with salt, and beat until uniform.",
-      durationSeconds: 60,
-    },
-    { instruction: "Melt butter in a non-stick pan over medium-low heat.", durationSeconds: 90 },
-    { instruction: "Pour in the eggs and stir constantly with a spatula.", durationSeconds: 120 },
-    {
-      instruction: "When just set but still glossy, fold and roll onto a plate.",
-      durationSeconds: 45,
-    },
-  ],
-});
+// Guarded so a re-evaluated module (dev HMR) does not duplicate the seeds into
+// the persistent global store.
+if (store.size === 0) {
+  createRecipe({
+    title: "Classic French Omelette",
+    servings: 1,
+    steps: [
+      {
+        instruction: "Crack 3 eggs into a bowl, season with salt, and beat until uniform.",
+        durationSeconds: 60,
+      },
+      { instruction: "Melt butter in a non-stick pan over medium-low heat.", durationSeconds: 90 },
+      { instruction: "Pour in the eggs and stir constantly with a spatula.", durationSeconds: 120 },
+      {
+        instruction: "When just set but still glossy, fold and roll onto a plate.",
+        durationSeconds: 45,
+      },
+    ],
+  });
 
-createRecipe({
-  title: "Simple Marinara",
-  servings: 4,
-  steps: [
-    {
-      instruction: "Warm olive oil and gently sweat minced garlic until fragrant.",
-      durationSeconds: 120,
-    },
-    { instruction: "Add crushed tomatoes, salt, and a pinch of sugar.", durationSeconds: 60 },
-    { instruction: "Simmer, stirring occasionally, until thickened.", durationSeconds: 1200 },
-    { instruction: "Finish with torn basil and a drizzle of olive oil.", durationSeconds: 30 },
-  ],
-});
+  createRecipe({
+    title: "Simple Marinara",
+    servings: 4,
+    steps: [
+      {
+        instruction: "Warm olive oil and gently sweat minced garlic until fragrant.",
+        durationSeconds: 120,
+      },
+      { instruction: "Add crushed tomatoes, salt, and a pinch of sugar.", durationSeconds: 60 },
+      { instruction: "Simmer, stirring occasionally, until thickened.", durationSeconds: 1200 },
+      { instruction: "Finish with torn basil and a drizzle of olive oil.", durationSeconds: 30 },
+    ],
+  });
+}

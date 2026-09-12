@@ -1,6 +1,9 @@
 import Link from "next/link";
 import { estimateTotalSeconds, listRecipes } from "@/lib/recipes";
 
+// Reflect recipes created at runtime instead of freezing the seed set at build.
+export const dynamic = "force-dynamic";
+
 function formatDuration(totalSeconds: number): string {
   if (totalSeconds <= 0) return "—";
   const minutes = Math.round(totalSeconds / 60);
