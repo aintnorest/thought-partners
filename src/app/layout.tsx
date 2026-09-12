@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Outfit, JetBrains_Mono } from "next/font/google";
 import type { ReactNode } from "react";
 import { ServiceWorkerRegistrar } from "@/components/service-worker-registrar";
+import { AppBootstrap } from "@/lib/glue/app-bootstrap";
 import "./globals.css";
 
 /* Locked type pair (DESIGN.md §3): Outfit everywhere, JetBrains Mono for clock/quantity figures. */
@@ -43,7 +44,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <body
         className={`${outfit.className} min-h-dvh bg-cast font-sans text-cream antialiased`}
       >
-        {children}
+        <AppBootstrap>{children}</AppBootstrap>
         <ServiceWorkerRegistrar />
       </body>
     </html>

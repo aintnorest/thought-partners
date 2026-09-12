@@ -1,0 +1,176 @@
+{
+  "id": "carbonara",
+  "title": "Spaghetti Carbonara",
+  "servings": 4,
+  "totalMinutes": 30,
+  "ingredients": [
+    {
+      "name": "spaghetti",
+      "qty": 400,
+      "unit": "g"
+    },
+    {
+      "name": "guanciale",
+      "qty": 180,
+      "unit": "g",
+      "prep": "skin removed"
+    },
+    {
+      "name": "large eggs",
+      "qty": 4
+    },
+    {
+      "name": "Pecorino Romano",
+      "qty": 100,
+      "unit": "g",
+      "prep": "finely grated"
+    },
+    {
+      "name": "black pepper",
+      "qty": 2,
+      "unit": "tsp",
+      "prep": "freshly ground"
+    },
+    {
+      "name": "kosher salt",
+      "qty": 1,
+      "unit": "tbsp"
+    }
+  ],
+  "equipment": [
+    "large pot",
+    "large skillet",
+    "chef's knife",
+    "cutting board",
+    "mixing bowl",
+    "whisk",
+    "tongs",
+    "measuring cup"
+  ],
+  "steps": [
+    {
+      "id": "chop-guanciale",
+      "kind": "prep",
+      "title": "Cut the guanciale",
+      "detail": "Slice the guanciale into 1 cm batons so the fat renders evenly while the meat stays crisp at the edges.",
+      "ingredients": ["guanciale"],
+      "tools": ["chef's knife", "cutting board"],
+      "imagePrompt": "Guanciale being sliced into even 1 cm batons, skin removed, chef's knife mid-cut",
+      "imageUrl": "/images/carbonara/chop-guanciale.png",
+      "questions": [
+        "How thick should each baton be?",
+        "Should I remove the skin first?",
+        "Can I substitute pancetta?"
+      ],
+      "doneWhen": "The guanciale is cut into evenly sized 1 cm batons with the tough skin removed."
+    },
+    {
+      "id": "mix-egg-cheese",
+      "kind": "prep",
+      "title": "Make the egg and cheese base",
+      "detail": "Whisk the eggs, most of the Pecorino, and half the black pepper into a thick, smooth paste. Reserve the remaining cheese and pepper for serving.",
+      "ingredients": ["large eggs", "Pecorino Romano", "black pepper"],
+      "tools": ["mixing bowl", "whisk"],
+      "parallelWith": ["render-guanciale"],
+      "questions": [
+        "Should I use whole eggs?",
+        "How smooth should the mixture be?",
+        "How much cheese should I reserve?"
+      ],
+      "doneWhen": "The eggs and cheese form a cohesive paste with no dry pockets of cheese."
+    },
+    {
+      "id": "render-guanciale",
+      "kind": "heat",
+      "title": "Render the guanciale",
+      "detail": "Start the guanciale in a cold skillet over medium-low heat. Cook until the fat is rendered and the batons are golden with crisp edges, then take the skillet off the heat.",
+      "durationSec": 480,
+      "ingredients": ["guanciale"],
+      "tools": ["large skillet"],
+      "parallelWith": ["mix-egg-cheese"],
+      "questions": [
+        "Why start with a cold skillet?",
+        "How crisp should the guanciale be?",
+        "Should I discard any rendered fat?"
+      ],
+      "doneWhen": "The guanciale is golden and crisp-edged, with a pool of clear rendered fat in the skillet."
+    },
+    {
+      "id": "boil-water",
+      "kind": "wait",
+      "title": "Bring the pasta water to a rolling boil",
+      "detail": "Fill the pot with water, season it with the salt, cover, and bring it to a vigorous rolling boil.",
+      "durationSec": 30,
+      "attentionSec": 5,
+      "ingredients": ["kosher salt"],
+      "tools": ["large pot"],
+      "questions": [
+        "How much water should I use?",
+        "When should I add the salt?",
+        "What does a rolling boil look like?"
+      ],
+      "doneWhen": "Large bubbles break rapidly across the entire surface of the salted water."
+    },
+    {
+      "id": "cook-spaghetti",
+      "kind": "heat",
+      "title": "Cook the spaghetti",
+      "detail": "Add the spaghetti and cook, stirring early to prevent sticking, until very al dente. Scoop out at least 350 ml of starchy pasta water before draining.",
+      "durationSec": 540,
+      "ingredients": ["spaghetti", "kosher salt"],
+      "tools": ["large pot", "tongs", "measuring cup"],
+      "questions": [
+        "How do I judge very al dente?",
+        "Why reserve so much pasta water?",
+        "Should I rinse the spaghetti?"
+      ],
+      "doneWhen": "The spaghetti bends easily but still has a firm core, and at least 350 ml pasta water is reserved."
+    },
+    {
+      "id": "temper-sauce",
+      "kind": "combine",
+      "title": "Temper the egg mixture",
+      "detail": "Whisk 120 ml of hot pasta water into the egg and cheese mixture a little at a time to loosen it without scrambling the eggs.",
+      "ingredients": ["large eggs", "Pecorino Romano", "black pepper"],
+      "tools": ["mixing bowl", "whisk", "measuring cup"],
+      "questions": [
+        "How slowly should I add the water?",
+        "What consistency am I aiming for?",
+        "What if I see small egg curds?"
+      ],
+      "doneWhen": "The mixture is warm, glossy, and pours in a thick ribbon from the whisk."
+    },
+    {
+      "id": "combine-pasta",
+      "kind": "combine",
+      "title": "Toss the pasta into a glossy sauce",
+      "detail": "Add the drained spaghetti to the off-heat skillet with the guanciale and fat. Pour in the tempered egg mixture and toss constantly, adding reserved pasta water by the splash until the sauce clings silkily to every strand.",
+      "ingredients": ["spaghetti", "guanciale", "large eggs", "Pecorino Romano", "black pepper"],
+      "tools": ["large skillet", "tongs"],
+      "imagePrompt": "Spaghetti, guanciale, and egg-Pecorino sauce tossed together with tongs in a skillet, sauce glossy and creamy and clinging to the strands",
+      "imageUrl": "/images/carbonara/combine-pasta.png",
+      "questions": [
+        "Why must the skillet be off the heat?",
+        "How much pasta water should I add?",
+        "How can I tell if the sauce is emulsified?"
+      ],
+      "doneWhen": "The sauce is glossy and fluid, clings to each strand, and has no visible scrambled egg."
+    },
+    {
+      "id": "plate-carbonara",
+      "kind": "plate",
+      "title": "Plate and finish",
+      "detail": "Twirl the carbonara into warm bowls, distribute the crisp guanciale, and finish with the reserved Pecorino and black pepper. Serve immediately.",
+      "ingredients": ["spaghetti", "guanciale", "Pecorino Romano", "black pepper"],
+      "tools": ["tongs"],
+      "imagePrompt": "Finished spaghetti carbonara twirled into a nest in a shallow bowl, glossy sauce, crisp guanciale, grated Pecorino and cracked black pepper on top",
+      "imageUrl": "/images/carbonara/plate-carbonara.png",
+      "questions": [
+        "How do I make a neat pasta twirl?",
+        "How much finishing cheese should I add?",
+        "Can the carbonara wait before serving?"
+      ],
+      "doneWhen": "Each bowl has glossy pasta, an even share of guanciale, and a fresh dusting of cheese and pepper."
+    }
+  ]
+}

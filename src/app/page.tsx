@@ -1,68 +1,16 @@
-import Link from "next/link";
-import { estimateTotalSeconds, listRecipes } from "@/lib/recipes";
-
-// Reflect recipes created at runtime instead of freezing the seed set at build.
-export const dynamic = "force-dynamic";
-
-function formatDuration(totalSeconds: number): string {
-  if (totalSeconds <= 0) return "—";
-  const minutes = Math.round(totalSeconds / 60);
-  if (minutes < 60) return `${minutes} min`;
-  const hours = Math.floor(minutes / 60);
-  const rest = minutes % 60;
-  return rest ? `${hours} h ${rest} min` : `${hours} h`;
-}
-
 export default function Home() {
-  const recipes = listRecipes();
-
   return (
-    <main className="mx-auto flex min-h-dvh max-w-3xl flex-col gap-12 px-6 py-16">
-      <header className="flex flex-col gap-4">
-        <span className="inline-flex w-fit items-center gap-2 rounded-full bg-ember/15 px-3 py-1 text-xs font-medium text-ember">
-          PWA · Agentic Sous Chef
-        </span>
-        <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">Jacques</h1>
-        <p className="max-w-prose text-lg text-stone">
-          A sous chef that coaches home cooks through recipes in real time — step-by-step guidance,
-          on-the-fly visuals, and voice.
-        </p>
-      </header>
-
-      <section className="flex flex-col gap-4">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-stone">Recipes</h2>
-        <ul className="grid gap-4 sm:grid-cols-2">
-          {recipes.map((recipe) => (
-            <li key={recipe.id}>
-              <Link
-                href={`/api/recipes/${recipe.id}`}
-                className="flex h-full flex-col gap-3 rounded-2xl border border-whisper bg-raised/50 p-5 transition hover:border-ember/60 hover:bg-raised"
-              >
-                <span className="text-lg font-medium text-cream">{recipe.title}</span>
-                <span className="mt-auto flex flex-wrap gap-x-4 gap-y-1 text-sm text-stone">
-                  <span>
-                    {recipe.servings} serving{recipe.servings === 1 ? "" : "s"}
-                  </span>
-                  <span>{recipe.steps.length} steps</span>
-                  <span>{formatDuration(estimateTotalSeconds(recipe))}</span>
-                </span>
-              </Link>
-            </li>
-          ))}
-        </ul>
-      </section>
-
-      <footer className="mt-auto flex flex-col gap-2 border-t border-whisper pt-6 text-sm text-stone">
-        <span className="font-medium text-stone">API</span>
-        <div className="flex flex-wrap gap-x-6 gap-y-1">
-          <Link className="hover:text-ember" href="/api/health">
-            GET /api/health
-          </Link>
-          <Link className="hover:text-ember" href="/api/recipes">
-            GET /api/recipes
-          </Link>
-        </div>
-      </footer>
+    <main className="mx-auto flex min-h-dvh max-w-3xl flex-col gap-8 px-6 py-16">
+      <h1 className="text-4xl font-semibold tracking-tight text-cream sm:text-5xl">Jacques</h1>
+      <p className="max-w-prose text-lg text-stone">Walkthrough UI lands at checkpoint 1.</p>
+      <nav className="flex flex-col gap-3 text-sm sm:flex-row sm:gap-6">
+        <a className="text-ember hover:text-cream" href="/?fixture=1">
+          Open fixture walkthrough
+        </a>
+        <a className="text-ember hover:text-cream" href="/api/health">
+          API health
+        </a>
+      </nav>
     </main>
   );
 }
