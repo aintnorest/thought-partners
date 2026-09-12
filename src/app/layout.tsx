@@ -1,13 +1,12 @@
 import type { Metadata, Viewport } from "next";
-import { Outfit, JetBrains_Mono } from "next/font/google";
+import { JetBrains_Mono, Outfit } from "next/font/google";
 import type { ReactNode } from "react";
 import { ServiceWorkerRegistrar } from "@/components/service-worker-registrar";
 import { AppBootstrap } from "@/lib/glue/app-bootstrap";
 import "./globals.css";
 
-/* Locked type pair (DESIGN.md §3): Outfit everywhere, JetBrains Mono for clock/quantity figures. */
-const outfit = Outfit({ subsets: ["latin"], weight: ["400", "500", "600", "700"] });
-const jetbrainsMono = JetBrains_Mono({ subsets: ["latin"], weight: ["400", "700"] });
+const outfit = Outfit({ subsets: ["latin"], variable: "--font-outfit" });
+const jetbrainsMono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-jetbrains-mono" });
 
 export const metadata: Metadata = {
   applicationName: "Jacques",
@@ -40,10 +39,8 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
-      <body
-        className={`${outfit.className} min-h-dvh bg-cast font-sans text-cream antialiased`}
-      >
+    <html lang="en" className={`${outfit.variable} ${jetbrainsMono.variable}`}>
+      <body className="min-h-dvh bg-cast-iron text-warm-off-white antialiased">
         <AppBootstrap>{children}</AppBootstrap>
         <ServiceWorkerRegistrar />
       </body>

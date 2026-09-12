@@ -16,14 +16,14 @@ pnpm dev                     # http://localhost:3000
 
 Jacques is a PWA sous chef that turns recipes into a step-by-step cooking flow. The current repo includes the scaffold, fixture data, seeded recipes, sample Cooklang recipes, and planning docs for the AI-backed routes.
 
-- **Core walkthrough:** `docs/PLAN.md` defines the target `RecipePlan` contract, step UI, timers, question cards, generated images, vision verdicts, heartbeat check-ins, and voice controls.
+- **Core walkthrough:** the shared components render the step timeline, instructions, timer, question/answer panels, photo verdicts, and heartbeat notices alongside Watch Me. The landing form currently loads the Carbonara sample; its answers and photo verdicts are explicitly scripted UI examples, not live AI results. `docs/PLAN.md` defines the target API-backed flow.
 - **Watch Me:** the walkthrough currently checks microphone input and camera capture. `docs/WATCH_ME_PLAN.md` describes the planned AI coaching; transcription, visual assessment, tool events, and spoken responses are not connected.
 - **Sample recipes:** `samples/cooklang/` contains curated Cooklang-style recipes grouped by `familiar/`, `exotic/`, and `centerpiece/`. See `samples/AGENTS.md` for the recipe conventions and `-- watch:` visual cue format.
 - **Design system:** `DESIGN.md` is the required visual source of truth for cooking screens.
 
 ## Microphone and camera check
 
-Open `/?fixture=1`, scroll to **Watch Me**, and select **Start capture**. Allow camera and microphone access to see the live preview and input-level meter. Fixture mode keeps media on the device and sends no API requests. The demo fix/readiness buttons show explicitly scripted examples, not model output.
+Open `/?fixture=1`, use the bottom **Microphone capture** control or scroll to **Watch Me**, and select **Start capture**. Allow camera and microphone access to see the live preview and input-level meter. Fixture mode keeps media on the device and sends no API requests. The demo fix/readiness buttons show explicitly scripted examples, not model output. Timers run without stopping capture; navigating to another step releases both devices.
 
 Outside fixture mode, a loaded walkthrough posts microphone chunks and JPEG frames to `/api/realtime` about every 1.5 seconds. That endpoint validates and acknowledges receipt only; it does not forward media to OpenRouter. Recorder chunks are not standalone speech turns.
 

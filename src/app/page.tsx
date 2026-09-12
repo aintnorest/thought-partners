@@ -1,65 +1,24 @@
 "use client";
 
-import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { AnswerPanel } from "@/components/answer-panel";
+import { AppShell } from "@/components/app-shell";
+import { CameraCapture } from "@/components/camera-capture";
+import { ControlCluster } from "@/components/control-cluster";
+import { HeartbeatToast } from "@/components/heartbeat-toast";
+import { ImagePanel } from "@/components/image-panel";
+import { ImportForm } from "@/components/import-form";
+import { QuestionCards } from "@/components/question-cards";
+import { StepCard } from "@/components/step-card";
+import { Timeline } from "@/components/timeline";
+import { Timer } from "@/components/timer";
+import { VerdictCard } from "@/components/verdict-card";
+import fixturePlan from "@/fixtures/plan.carbonara.json";
+import { fixtureAnswerChunks, fixtureVerdict } from "@/lib/fixture-responses";
 import { useFlags } from "@/lib/glue/app-bootstrap";
 import { isWatchableStep, useWatchMeSession } from "@/lib/realtime/use-watch-me-session";
 import { useStore } from "@/lib/store";
-import type { Card, Step } from "@/lib/types";
-
-const KIND_LABEL: Record<Step["kind"], string> = {
-  prep: "Prep",
-  heat: "Heat",
-  wait: "Wait",
-  combine: "Combine",
-  plate: "Plate",
-  check: "Check",
-};
-
-function formatSeconds(totalSeconds: number): string {
-  const minutes = Math.floor(totalSeconds / 60)
-    .toString()
-    .padStart(2, "0");
-  const seconds = Math.floor(totalSeconds % 60)
-    .toString()
-    .padStart(2, "0");
-  return `${minutes}:${seconds}`;
-}
-
-function railClass(card: Card): string {
-  if (card.kind === "watch_ready") return "border-l-herb";
-  if (card.kind === "watch_fix")
-    return card.level === "high" ? "border-l-brick" : "border-l-saffron";
-  return "border-l-saffron";
-}
-
-function CardList({ cards, stepId }: { cards: Card[]; stepId: string }) {
-  const flags = useFlags();
-  const visibleCards = cards
-    .filter((card) => card.stepId === stepId && (flags.fixture || card.kind === "heartbeat"))
-    .slice(-2);
-  if (visibleCards.length === 0) return null;
-
-  return (
-    <section className="space-y-3" aria-label="Step notices">
-      {visibleCards.map((card) => (
-        <div
-          className={`rounded-card border border-l-4 border-whisper ${railClass(card)} bg-raised p-4`}
-          key={`${card.kind}-${card.stepId}-${card.line}`}
-        >
-          <p className="text-meta font-semibold uppercase tracking-[0.08em] text-stone">
-            {card.kind === "heartbeat"
-              ? "Heartbeat"
-              : card.kind === "watch_ready"
-                ? "Fixture example: ready"
-                : "Fixture example: fix"}
-          </p>
-          <p className="mt-2 text-lg text-cream">{card.line}</p>
-        </div>
-      ))}
-    </section>
-  );
-}
+import type { AnswerCard, RecipePlan, Step, WatchFixCard, WatchReadyCard } from "@/lib/types";
 
 function WatchMePanel({ step }: { step: Step }) {
   const flags = useFlags();
@@ -246,172 +205,226 @@ function WatchMePanel({ step }: { step: Step }) {
   );
 }
 
+const plan = fixturePlan as RecipePlan;
+const OFFLINE_QA_MESSAGE = "Offline demo — Q&A needs a connection.";
+const STREAM_CHUNK_DELAY_MS = 90;
+
 export default function Home() {
   const flags = useFlags();
-  const plan = useStore((state) => state.plan);
-  const stepIndex = useStore((state) => state.stepIndex);
-  const cards = useStore((state) => state.cards);
-  const next = useStore((state) => state.next);
-  const prev = useStore((state) => state.prev);
-  const timer = useStore((state) => state.activeTimer);
-  const startTimer = useStore((state) => state.startTimer);
-  const cancelTimer = useStore((state) => state.cancelTimer);
-  const [now, setNow] = useState(Date.now);
-  const remaining = timer
-    ? Math.max(0, Math.ceil((timer.startedAt + timer.sec * 1000 - now) / 1000))
-    : 0;
+  const storePlan = useStore((s) => s.plan);
+  const stepIndex = useStore((s) => s.stepIndex);
+  const generation = useStore((s) => s.generation);
+  const cards = useStore((s) => s.cards);
+  const activeTimer = useStore((s) => s.activeTimer);
+
+  const [activeQuestion, setActiveQuestion] = useState<string | undefined>();
+  const streamGeneration = useRef(0);
+
+  const currentStep = storePlan?.steps[stepIndex];
+  const showWatchMe = !flags.nowatch && isWatchableStep(currentStep);
+
+  // Cancel the sample stream synchronously when navigation/repeat invalidates its context.
+  useEffect(() => {
+    const unsubscribe = useStore.subscribe((state, previous) => {
+      if (
+        state.plan !== previous.plan ||
+        state.stepIndex !== previous.stepIndex ||
+        state.generation !== previous.generation
+      ) {
+        setActiveQuestion(undefined);
+        streamGeneration.current += 1;
+      }
+    });
+    return () => {
+      unsubscribe();
+      streamGeneration.current += 1;
+    };
+  }, []);
 
   useEffect(() => {
-    if (!timer) return;
-    setNow(Date.now());
-    const interval = window.setInterval(() => setNow(Date.now()), 1000);
-    return () => window.clearInterval(interval);
-  }, [timer]);
-  const step = plan?.steps[stepIndex];
-  const showWatchMe = !flags.nowatch && isWatchableStep(step);
-  const showMic = showWatchMe && !flags.novoice;
+    function onKeyDown(event: KeyboardEvent) {
+      if (!storePlan || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
+      const target = event.target as HTMLElement | null;
+      const tag = target?.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || target?.isContentEditable) return;
 
-  if (!plan || !step) {
+      if (event.key === "ArrowRight") {
+        event.preventDefault();
+        useStore.getState().next();
+      } else if (event.key === "ArrowLeft") {
+        event.preventDefault();
+        useStore.getState().prev();
+      } else if (event.key === "r") {
+        event.preventDefault();
+        useStore.getState().repeat();
+      }
+    }
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [storePlan]);
+
+  if (!storePlan || !currentStep) {
     return (
-      <main className="mx-auto flex min-h-dvh max-w-3xl flex-col gap-8 px-6 py-16">
-        <h1 className="text-4xl font-semibold tracking-tight text-cream sm:text-5xl">Jacques</h1>
-        <p className="max-w-prose text-lg text-stone">
-          Open the offline fixture walkthrough to check microphone input and camera preview. No AI
-          analysis is connected.
-        </p>
-        <nav className="flex flex-col gap-3 text-sm sm:flex-row sm:gap-6">
-          <a
-            className="text-ember hover:text-cream"
-            href={`/?fixture=1${flags.nowatch ? "&nowatch=1" : ""}${flags.novoice ? "&novoice=1" : ""}${flags.noimages ? "&noimages=1" : ""}`}
-          >
-            Open fixture walkthrough
-          </a>
-          <a className="text-ember hover:text-cream" href="/api/health">
-            API health
-          </a>
-        </nav>
-      </main>
+      <AppShell>
+        <main className="flex flex-1 flex-col gap-8 px-4 py-10">
+          <h1 className="text-[clamp(2rem,7vw,3.25rem)] font-bold tracking-[-0.02em] text-warm-off-white">
+            Jacques
+          </h1>
+          <ImportForm
+            onSubmit={() => useStore.getState().setPlan(plan)}
+            onUseSample={() => useStore.getState().setPlan(plan)}
+          />
+        </main>
+      </AppShell>
     );
   }
 
+  function handleAsk(question: string) {
+    setActiveQuestion(question);
+    if (flags.fixture || !currentStep) return;
+
+    const stepId = currentStep.id;
+    const myStreamGen = ++streamGeneration.current;
+    const chunks = fixtureAnswerChunks(storePlan as RecipePlan, currentStep, question);
+
+    (async () => {
+      let text = "";
+      for (const chunk of chunks) {
+        const { promise, resolve } = Promise.withResolvers<void>();
+        setTimeout(resolve, STREAM_CHUNK_DELAY_MS);
+        await promise;
+        if (streamGeneration.current !== myStreamGen) return;
+
+        text = text ? `${text} ${chunk}` : chunk;
+        useStore.getState().setAnswer({ kind: "answer", stepId, question, text, streaming: true });
+      }
+      if (streamGeneration.current !== myStreamGen) return;
+      useStore.getState().setAnswer({ kind: "answer", stepId, question, text, streaming: false });
+    })();
+  }
+
+  function handleCapture() {
+    if (!currentStep) return;
+    const verdict = fixtureVerdict(currentStep);
+    useStore.getState().pushCard({ kind: "verdict", stepId: currentStep.id, verdict });
+  }
+
+  const latestAnswer = flags.fixture
+    ? undefined
+    : cards.findLast(
+        (card): card is AnswerCard => card.kind === "answer" && card.stepId === currentStep.id,
+      );
+  const latestVerdict = cards.findLast(
+    (card) => card.kind === "verdict" && card.stepId === currentStep.id,
+  );
+  const latestHeartbeat = cards.findLast(
+    (card) => card.kind === "heartbeat" && card.stepId === currentStep.id,
+  );
+  const watchCards = flags.fixture
+    ? cards.filter(
+        (card): card is WatchFixCard | WatchReadyCard =>
+          (card.kind === "watch_fix" || card.kind === "watch_ready") &&
+          card.stepId === currentStep.id,
+      )
+    : [];
+
   return (
-    <main className="mx-auto flex min-h-dvh max-w-[640px] flex-col gap-5 px-4 pb-[calc(env(safe-area-inset-bottom)+7rem)] pt-[calc(env(safe-area-inset-top)+1rem)] sm:px-6">
-      <header className="flex items-center gap-3">
-        <nav
-          className="flex min-w-0 flex-1 items-center gap-3 overflow-x-auto"
-          aria-label="Step progress"
-        >
-          {plan.steps.map((candidate, index) => (
-            <button
-              aria-label={`Go to step ${index + 1}`}
-              aria-current={index === stepIndex ? "step" : undefined}
-              className="flex min-h-14 min-w-14 flex-1 shrink-0 items-center rounded-pill"
-              key={candidate.id}
-              onClick={() => useStore.getState().goto(index)}
-              type="button"
-            >
-              <span
-                aria-hidden="true"
-                className={`h-3 w-full rounded-pill border ${index < stepIndex ? "border-herb bg-herb" : index === stepIndex ? "border-ember bg-transparent" : "border-stone/40 bg-transparent"}`}
-              />
-            </button>
-          ))}
-        </nav>
-        <span className="shrink-0 font-mono text-sm text-stone">
-          {stepIndex + 1} / {plan.steps.length}
-        </span>
-      </header>
+    <AppShell>
+      <Timeline
+        steps={storePlan.steps}
+        currentIndex={stepIndex}
+        onSelect={(i) => useStore.getState().goto(i)}
+      />
 
-      <section className="rounded-card border border-whisper bg-raised p-5">
-        <div className="flex items-center justify-between gap-4">
-          <p className="text-meta font-semibold uppercase tracking-[0.08em] text-stone">
-            {KIND_LABEL[step.kind]}
-          </p>
-          {timer ? (
-            <p className="font-mono text-sm text-saffron" role="timer">
-              {remaining > 0 ? `Timer ${formatSeconds(remaining)}` : "Time is up"}
-            </p>
-          ) : step.durationSec ? (
-            <p className="font-mono text-sm text-stone">
-              Suggested duration {formatSeconds(step.durationSec)}
-            </p>
-          ) : null}
-        </div>
-        <h1 className="mt-4 text-step-title font-bold leading-tight tracking-[-0.02em] text-cream">
-          {step.title}
-        </h1>
-        <p className="mt-5 text-step-detail leading-[1.55] text-cream">{step.detail}</p>
-        {step.doneWhen ? (
-          <div className="mt-5 rounded-card border border-whisper bg-cast p-4">
-            <p className="text-meta font-semibold uppercase tracking-[0.08em] text-stone">
-              Done when
-            </p>
-            <p className="mt-2 text-lg text-stone">{step.doneWhen}</p>
-          </div>
-        ) : null}
-      </section>
-
-      {!flags.noimages && step.imageUrl ? (
-        <Image
-          alt={`Instructional sketch for ${step.title}`}
-          className="aspect-4/3 rounded-card border border-whisper object-cover"
-          height={480}
-          src={step.imageUrl}
-          width={640}
+      <main className="flex flex-1 flex-col gap-6 overflow-y-auto px-4 pb-56">
+        <StepCard step={currentStep} />
+        <ImagePanel
+          imageUrl={currentStep.imageUrl}
+          alt={currentStep.title}
+          hidden={flags.noimages}
         />
-      ) : null}
+        {currentStep.durationSec !== undefined && <Timer />}
 
-      {step.questions.length > 0 ? (
-        <section className="space-y-3" aria-label="Suggested questions">
-          <p className="text-sm text-stone">Suggested questions — answers are not connected.</p>
-          {step.questions.map((question) => (
-            <p className="rounded-card border border-whisper px-5 py-4 text-cream" key={question}>
-              {question}
-            </p>
-          ))}
-        </section>
-      ) : null}
+        {!flags.fixture && (
+          <p className="text-stone-gray">
+            Sample walkthrough: answers and photo verdicts are scripted examples, not AI analysis.
+          </p>
+        )}
 
-      <CardList cards={cards} stepId={step.id} />
-      {showWatchMe ? <WatchMePanel key={step.id} step={step} /> : null}
+        <QuestionCards
+          questions={currentStep.questions}
+          activeQuestion={activeQuestion}
+          onSelect={handleAsk}
+          cascadeKey={`${currentStep.id}:${generation}`}
+        />
+        {activeQuestion && (
+          <AnswerPanel
+            card={latestAnswer}
+            offlineMessage={flags.fixture ? OFFLINE_QA_MESSAGE : undefined}
+          />
+        )}
+        {watchCards.length > 0 && (
+          <section className="space-y-3" aria-label="Step notices">
+            {watchCards.map((card) => (
+              <div
+                key={`${card.kind}-${card.stepId}`}
+                className={`rounded-3xl border border-whisper-warm border-l-4 bg-raised-charcoal p-4 ${
+                  card.kind === "watch_ready"
+                    ? "border-l-herb"
+                    : card.level === "high"
+                      ? "border-l-brick"
+                      : "border-l-saffron"
+                }`}
+              >
+                <p className="text-sm uppercase tracking-[0.08em] text-stone-gray">
+                  {card.kind === "watch_ready" ? "Fixture example: ready" : "Fixture example: fix"}
+                </p>
+                <p className="mt-2 text-lg text-warm-off-white">{card.line}</p>
+              </div>
+            ))}
+          </section>
+        )}
+        {showWatchMe && (
+          <WatchMePanel key={`${storePlan.id}:${currentStep.id}`} step={currentStep} />
+        )}
+      </main>
 
-      <div className="fixed inset-x-0 bottom-0 border-t border-whisper bg-cast/95 px-4 pb-[calc(env(safe-area-inset-bottom)+1rem)] pt-3 backdrop-blur">
-        <div
-          className={`mx-auto grid max-w-[640px] gap-3 ${showMic ? "grid-cols-4" : "grid-cols-3"}`}
-        >
-          <button
-            className="min-h-14 rounded-pill border border-whisper px-3 text-cream disabled:text-stone"
-            disabled={stepIndex === 0}
-            onClick={prev}
-            type="button"
-          >
-            Prev
-          </button>
-          <button
-            className="min-h-14 rounded-pill border border-whisper px-3 text-cream"
-            onClick={() => (timer ? cancelTimer() : startTimer(step.durationSec ?? 60))}
-            type="button"
-          >
-            {timer ? "Cancel" : "Timer"}
-          </button>
-          {showMic ? (
-            <a
-              className="flex min-h-14 items-center justify-center rounded-pill border border-whisper px-3 text-center text-cream"
-              href="#watch-me"
-            >
-              Mic
-            </a>
-          ) : null}
-          <button
-            className="min-h-14 rounded-pill bg-ember px-3 font-semibold text-cast disabled:border disabled:border-whisper disabled:bg-transparent disabled:text-stone"
-            disabled={stepIndex === plan.steps.length - 1}
-            onClick={next}
-            type="button"
-          >
-            Next
-          </button>
+      <div className="pointer-events-none fixed inset-x-0 bottom-[164px] z-20 mx-auto flex w-full max-w-[640px] flex-col gap-3 px-4">
+        <div className="pointer-events-auto flex flex-col gap-3">
+          {latestVerdict?.kind === "verdict" && (
+            <VerdictCard
+              card={latestVerdict}
+              onDismiss={() =>
+                useStore.setState((state) => ({
+                  cards: state.cards.filter((c) => c !== latestVerdict),
+                }))
+              }
+            />
+          )}
+          {latestHeartbeat?.kind === "heartbeat" && <HeartbeatToast card={latestHeartbeat} />}
         </div>
       </div>
-    </main>
+
+      <ControlCluster
+        onPrev={() => useStore.getState().prev()}
+        onNext={() => useStore.getState().next()}
+        prevDisabled={stepIndex === 0}
+        nextDisabled={stepIndex === storePlan.steps.length - 1}
+        onToggleTimer={() => {
+          if (activeTimer) useStore.getState().cancelTimer();
+          else if (currentStep.durationSec) useStore.getState().startTimer(currentStep.durationSec);
+        }}
+        timerActive={activeTimer !== undefined}
+        timerDisabled={activeTimer === undefined && currentStep.durationSec === undefined}
+        novoice={flags.novoice}
+        onMic={
+          showWatchMe
+            ? () => document.getElementById("watch-me")?.scrollIntoView({ block: "start" })
+            : undefined
+        }
+        camera={<CameraCapture onCapture={flags.fixture ? undefined : handleCapture} />}
+      />
+    </AppShell>
   );
 }

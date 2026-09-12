@@ -14,9 +14,7 @@ function Section({ id, title, children }: { id: string; title: string; children:
 }
 
 function Meta({ children }: { children: ReactNode }) {
-  return (
-    <p className="mb-3 text-meta uppercase tracking-[0.08em] text-stone">{children}</p>
-  );
+  return <p className="mb-3 text-meta uppercase tracking-[0.08em] text-stone">{children}</p>;
 }
 
 function Note({ children }: { children: ReactNode }) {
@@ -25,9 +23,17 @@ function Note({ children }: { children: ReactNode }) {
 
 /* ————————— Line icons (DESIGN.md §7: line icons only, never emoji) ————————— */
 
-const ICON = { width: 20, height: 20, viewBox: "0 0 24 24", fill: "none",
-  stroke: "currentColor", strokeWidth: 1.75, strokeLinecap: "round" as const,
-  strokeLinejoin: "round" as const, "aria-hidden": true };
+const ICON = {
+  width: 20,
+  height: 20,
+  viewBox: "0 0 24 24",
+  fill: "none",
+  stroke: "currentColor",
+  strokeWidth: 1.75,
+  strokeLinecap: "round" as const,
+  strokeLinejoin: "round" as const,
+  "aria-hidden": true,
+};
 
 const ICONS: Record<string, ReactNode> = {
   prep: (
@@ -102,16 +108,46 @@ const BASE_HUES = [
   { token: "raised", name: "Raised Charcoal", hex: "#262320", role: "Card & sheet surfaces" },
   { token: "cream", name: "Warm Off-White", hex: "#F5F2EC", role: "Primary text, timer digits" },
   { token: "stone", name: "Stone Gray", hex: "#A8A29A", role: "Secondary text, inactive dots" },
-  { token: "whisper", name: "Whisper Warm", hex: "F5F2EC @ 9%", role: "1px hairlines — structural only" },
+  {
+    token: "whisper",
+    name: "Whisper Warm",
+    hex: "F5F2EC @ 9%",
+    role: "1px hairlines — structural only",
+  },
 ];
 
 const STATUS = [
-  { token: "herb", name: "Herb Green", hex: "#5FA87A", role: "verdict good · done steps · success" },
-  { token: "saffron", name: "Saffron Amber", hex: "#E2A33C", role: "verdict close · heartbeat · expiring timers" },
-  { token: "brick", name: "Brick Red", hex: "#D9604F", role: "verdict off · destructive outline · errors" },
+  {
+    token: "herb",
+    name: "Herb Green",
+    hex: "#5FA87A",
+    role: "verdict good · done steps · success",
+  },
+  {
+    token: "saffron",
+    name: "Saffron Amber",
+    hex: "#E2A33C",
+    role: "verdict close · heartbeat · expiring timers",
+  },
+  {
+    token: "brick",
+    name: "Brick Red",
+    hex: "#D9604F",
+    role: "verdict off · destructive outline · errors",
+  },
 ];
 
-function Swatch({ token, name, hex, role }: { token: string; name: string; hex: string; role: string }) {
+function Swatch({
+  token,
+  name,
+  hex,
+  role,
+}: {
+  token: string;
+  name: string;
+  hex: string;
+  role: string;
+}) {
   return (
     <li className="flex items-center gap-4 rounded-2xl border border-whisper bg-raised/50 p-3 pr-4">
       <span
@@ -162,7 +198,11 @@ function TimelineDemo() {
             <span
               className={[
                 "h-3 w-3 shrink-0 rounded-full border",
-                i < 2 ? "border-herb bg-herb" : i === 2 ? "border-ember bg-ember pulse-ember" : "border-stone",
+                i < 2
+                  ? "border-herb bg-herb"
+                  : i === 2
+                    ? "border-ember bg-ember pulse-ember"
+                    : "border-stone",
               ].join(" ")}
             />
             {i < 4 && <span className="h-px flex-1 bg-whisper" />}
@@ -184,9 +224,7 @@ function StepCardDemo() {
       <div className="mb-3 flex items-center">
         <KindChip kind="prep" />
       </div>
-      <h3 className="text-step-title font-bold tracking-[-0.02em]">
-        Dice the onion pole-to-pole
-      </h3>
+      <h3 className="text-step-title font-bold tracking-[-0.02em]">Dice the onion pole-to-pole</h3>
       <p className="mt-3 max-w-[65ch] text-step-detail leading-[1.55] text-cream/90">
         Halve through the root, peel, then cut top to root end so the layers stay attached.
       </p>
@@ -203,13 +241,19 @@ function QuestionCardsDemo() {
   return (
     <div>
       <div className="space-y-2.5">
-        {["Why pole-to-pole?", "How fine should the dice be?", "Can I use a red onion instead?"].map(
-          (q) => (
-            <button key={q} type="button" className="block w-full rounded-full border border-whisper px-5 py-3 text-left text-sm text-cream">
-              {q}
-            </button>
-          ),
-        )}
+        {[
+          "Why pole-to-pole?",
+          "How fine should the dice be?",
+          "Can I use a red onion instead?",
+        ].map((q) => (
+          <button
+            key={q}
+            type="button"
+            className="block w-full rounded-full border border-whisper px-5 py-3 text-left text-sm text-cream"
+          >
+            {q}
+          </button>
+        ))}
       </div>
       <div className="mt-2.5 rounded-2xl border border-whisper bg-raised p-4">
         <div className="space-y-2">
@@ -220,7 +264,8 @@ function QuestionCardsDemo() {
       </div>
       <Note>
         Exactly three per step, ghost-outline chips stacked above the controls. Cascade in on step
-        mount; tap expands a Raised answer panel with streamed text. Shimmer skeleton while streaming.
+        mount; tap expands a Raised answer panel with streamed text. Shimmer skeleton while
+        streaming.
       </Note>
     </div>
   );
@@ -259,14 +304,24 @@ function ImagePanelDemo() {
         </p>
       </div>
       <Note>
-        4:3 aspect, rounded-card, Whisper border. Skeletal shimmer under the generated
-        image; when imageUrl is missing, compose an empty state — never a broken-image icon.
+        4:3 aspect, rounded-card, Whisper border. Skeletal shimmer under the generated image; when
+        imageUrl is missing, compose an empty state — never a broken-image icon.
       </Note>
     </div>
   );
 }
 
-function VerdictCard({ status, label, observed, fix }: { status: "good" | "close" | "off"; label: string; observed: string; fix?: string }) {
+function VerdictCard({
+  status,
+  label,
+  observed,
+  fix,
+}: {
+  status: "good" | "close" | "off";
+  label: string;
+  observed: string;
+  fix?: string;
+}) {
   const rail = { good: "bg-herb", close: "bg-saffron", off: "bg-brick" }[status];
   return (
     <div className="flex gap-3 rounded-2xl border border-whisper bg-raised p-4">
@@ -300,7 +355,10 @@ function InputsDemo() {
   return (
     <div className="max-w-sm space-y-4">
       <div>
-        <label htmlFor="ds-url" className="mb-1.5 block text-meta uppercase tracking-[0.08em] text-stone">
+        <label
+          htmlFor="ds-url"
+          className="mb-1.5 block text-meta uppercase tracking-[0.08em] text-stone"
+        >
           Recipe URL
         </label>
         <input
@@ -311,7 +369,10 @@ function InputsDemo() {
         <p className="mt-1.5 text-sm text-stone">Helper text goes below the field.</p>
       </div>
       <div>
-        <label htmlFor="ds-text" className="mb-1.5 block text-meta uppercase tracking-[0.08em] text-stone">
+        <label
+          htmlFor="ds-text"
+          className="mb-1.5 block text-meta uppercase tracking-[0.08em] text-stone"
+        >
           Recipe text
         </label>
         <input
@@ -349,12 +410,23 @@ export default function DesignSystemPage() {
   return (
     <main className="mx-auto max-w-[44rem] px-6 pb-24">
       <header className="sticky top-0 z-10 -mx-6 border-b border-whisper bg-cast/85 px-6 py-3 backdrop-blur">
-        <nav aria-label="Design system sections" className="flex items-center justify-center gap-6 text-sm">
+        <nav
+          aria-label="Design system sections"
+          className="flex items-center justify-center gap-6 text-sm"
+        >
           <span className="font-bold">Jacques</span>
-          <a href="#color" className="text-stone hover:text-ember">Color</a>
-          <a href="#type" className="text-stone hover:text-ember">Type</a>
-          <a href="#components" className="text-stone hover:text-ember">Components</a>
-          <a href="#motion" className="text-stone hover:text-ember">Motion</a>
+          <a href="#color" className="text-stone hover:text-ember">
+            Color
+          </a>
+          <a href="#type" className="text-stone hover:text-ember">
+            Type
+          </a>
+          <a href="#components" className="text-stone hover:text-ember">
+            Components
+          </a>
+          <a href="#motion" className="text-stone hover:text-ember">
+            Motion
+          </a>
         </nav>
       </header>
 
@@ -364,8 +436,8 @@ export default function DesignSystemPage() {
           A headlamp-lit kitchen counter at night
         </h1>
         <p className="mt-4 max-w-[65ch] text-step-detail leading-[1.55] text-cream/90">
-          Deep warm charcoal, one ember accent, type readable from three feet away. Density is low by
-          design; motion is gentle and perpetual. This page is the living reference — every token
+          Deep warm charcoal, one ember accent, type readable from three feet away. Density is low
+          by design; motion is gentle and perpetual. This page is the living reference — every token
           below is the same token the app consumes.
         </p>
       </div>
@@ -380,7 +452,12 @@ export default function DesignSystemPage() {
         <div className="h-6" />
         <Meta>Accent</Meta>
         <ul className="grid gap-3 sm:grid-cols-2">
-          <Swatch token="ember" name="Ember Orange" hex="#DE6B3F" role="CTAs, current step, timer ring, focus rings — nothing else may use it" />
+          <Swatch
+            token="ember"
+            name="Ember Orange"
+            hex="#DE6B3F"
+            role="CTAs, current step, timer ring, focus rings — nothing else may use it"
+          />
         </ul>
         <div className="h-6" />
         <Meta>Status (semantic only — never buttons)</Meta>
@@ -408,30 +485,46 @@ export default function DesignSystemPage() {
             </p>
           </TypeRow>
           <TypeRow label="Meta label — 0.875rem · uppercase · tracking 0.08em · Stone">
-            <p className="text-meta uppercase tracking-[0.08em] text-stone">doneWhen · prep · mise en place</p>
+            <p className="text-meta uppercase tracking-[0.08em] text-stone">
+              doneWhen · prep · mise en place
+            </p>
           </TypeRow>
           <TypeRow label="Mono — JetBrains Mono · tabular figures · clocks & quantities only">
-            <p className="font-mono text-2xl [font-feature-settings:'tnum']">08:35:12 · 450g · 3 / 9</p>
+            <p className="font-mono text-2xl [font-feature-settings:'tnum']">
+              08:35:12 · 450g · 3 / 9
+            </p>
           </TypeRow>
         </ul>
         <Note>
-          Banned: Inter (default AI slop), all serif fonts, sub-1rem body text, all-caps for anything
-          except meta labels. Headings are always roman — never italic.
+          Banned: Inter (default AI slop), all serif fonts, sub-1rem body text, all-caps for
+          anything except meta labels. Headings are always roman — never italic.
         </Note>
       </Section>
 
       <Section id="components" title="Components">
         <Meta>Buttons — pill, 56px min height, 24px padding</Meta>
         <div className="flex flex-wrap gap-3">
-          <button type="button" className={btnPrimary}>Start cooking</button>
-          <button type="button" className={btnSecondary}>Back</button>
-          <button type="button" className={btnDestructive}>Discard plan</button>
+          <button type="button" className={btnPrimary}>
+            Start cooking
+          </button>
+          <button type="button" className={btnSecondary}>
+            Back
+          </button>
+          <button type="button" className={btnDestructive}>
+            Discard plan
+          </button>
         </div>
         <Meta>States (forced)</Meta>
         <div className="flex flex-wrap gap-3">
-          <button type="button" className={btnPrimary} data-s="hover">hover</button>
-          <button type="button" className={btnPrimary} data-s="focus">focus</button>
-          <button type="button" className={btnPrimary} disabled>disabled</button>
+          <button type="button" className={btnPrimary} data-s="hover">
+            hover
+          </button>
+          <button type="button" className={btnPrimary} data-s="focus">
+            focus
+          </button>
+          <button type="button" className={btnPrimary} disabled>
+            disabled
+          </button>
         </div>
         <Note>
           Primary = Ember fill + Cast Iron text. Secondary = ghost outline (Whisper). Destructive =
@@ -483,9 +576,23 @@ export default function DesignSystemPage() {
         <p className="mt-10" />
         <Meta>VerdictCard — status by 4px rail, not elevation</Meta>
         <div className="space-y-3">
-          <VerdictCard status="good" label="good" observed="Dice is even — matches the reference cut." />
-          <VerdictCard status="close" label="close" observed="A few chunks larger than the rest." fix="Scoop the big pieces back to the board and re-cut them." />
-          <VerdictCard status="off" label="off" observed="Slices, not dice — and the root end is still on." fix="Split the onion through the root, then dice across the halves." />
+          <VerdictCard
+            status="good"
+            label="good"
+            observed="Dice is even — matches the reference cut."
+          />
+          <VerdictCard
+            status="close"
+            label="close"
+            observed="A few chunks larger than the rest."
+            fix="Scoop the big pieces back to the board and re-cut them."
+          />
+          <VerdictCard
+            status="off"
+            label="off"
+            observed="Slices, not dice — and the root end is still on."
+            fix="Split the onion through the root, then dice across the halves."
+          />
         </div>
 
         <p className="mt-10" />
@@ -499,33 +606,58 @@ export default function DesignSystemPage() {
 
       <Section id="layout" title="Layout">
         <ul className="list-none space-y-2 text-sm text-cream/90">
-          <li>Portrait-first, single column always — desktop only widens the centered column toward 640px.</li>
-          <li>Full step screens via min-h-[100dvh]; PWA chrome pads env(safe-area-inset-*) on all four edges.</li>
-          <li>Walkthrough skeleton: timeline rail → scrollable middle → question cards → fixed bottom controls.</li>
-          <li>Touch targets ≥ 56px; ≥ 12px gaps between adjacent targets — wet-thumb forgiveness.</li>
-          <li>Whitespace separates. Borders and spacing structure the page — no shadows, no overlap.</li>
+          <li>
+            Portrait-first, single column always — desktop only widens the centered column toward
+            640px.
+          </li>
+          <li>
+            Full step screens via min-h-[100dvh]; PWA chrome pads env(safe-area-inset-*) on all four
+            edges.
+          </li>
+          <li>
+            Walkthrough skeleton: timeline rail → scrollable middle → question cards → fixed bottom
+            controls.
+          </li>
+          <li>
+            Touch targets ≥ 56px; ≥ 12px gaps between adjacent targets — wet-thumb forgiveness.
+          </li>
+          <li>
+            Whitespace separates. Borders and spacing structure the page — no shadows, no overlap.
+          </li>
         </ul>
       </Section>
 
       <Section id="motion" title="Motion">
         <ul className="space-y-2 text-sm text-cream/90">
-          <li>Spring physics: stiffness 100, damping 20 (CSS fallback: ease-jacques). No linear easing, no bounce.</li>
-          <li>Perpetual micro-loops on live elements only: ring sweep, ember pulse, image shimmer, mic float.</li>
-          <li>Step mount cascades title → detail → image → cards on 60ms offsets — never pop all at once.</li>
+          <li>
+            Spring physics: stiffness 100, damping 20 (CSS fallback: ease-jacques). No linear
+            easing, no bounce.
+          </li>
+          <li>
+            Perpetual micro-loops on live elements only: ring sweep, ember pulse, image shimmer, mic
+            float.
+          </li>
+          <li>
+            Step mount cascades title → detail → image → cards on 60ms offsets — never pop all at
+            once.
+          </li>
           <li>Transform and opacity only — never animate width, height, top, left.</li>
           <li>Verdict/heartbeat entries slide up + fade (translateY 8px → 0), exit by collapse.</li>
           <li>prefers-reduced-motion: reduce — loops collapse to opacity-only.</li>
         </ul>
         <Note>
-          Motion tokens: --ease-jacques, --dur-step-cascade (60ms), --dur-verdict (220ms). Loops ship
-          in tokens.css as .shimmer / .pulse-ember / .pulse-amber, gated behind no-preference.
+          Motion tokens: --ease-jacques, --dur-step-cascade (60ms), --dur-verdict (220ms). Loops
+          ship in tokens.css as .shimmer / .pulse-ember / .pulse-amber, gated behind no-preference.
         </Note>
       </Section>
 
       <Section id="anti" title="Anti-patterns">
         <ul className="grid gap-2 sm:grid-cols-2">
           {ANTI.map((a) => (
-            <li key={a} className="rounded-xl border border-whisper bg-raised/50 px-4 py-3 text-sm text-stone">
+            <li
+              key={a}
+              className="rounded-xl border border-whisper bg-raised/50 px-4 py-3 text-sm text-stone"
+            >
               {a}
             </li>
           ))}
@@ -534,7 +666,7 @@ export default function DesignSystemPage() {
 
       <Section id="usage" title="Usage">
         <pre className="overflow-x-auto rounded-2xl border border-whisper bg-raised p-4 font-mono text-xs text-cream/90">
-{`bg-cast text-cream
+          {`bg-cast text-cream
 border border-whisper rounded-card bg-raised
 bg-ember text-cast          — primary CTA
 text-stone                  — secondary copy
@@ -543,14 +675,14 @@ font-mono [font-feature-settings:'tnum'] — clocks & quantities
 text-step-title / text-step-detail / text-meta — locked scale`}
         </pre>
         <Note>
-          Tokens live in src/app/tokens.css and are regression-checked by design-system.spec.
-          Change a token by changing DESIGN.md first, then the token — never the reverse.
+          Tokens live in src/app/globals.css (@theme block). Change a token by changing DESIGN.md
+          first, then the token — never the reverse.
         </Note>
       </Section>
 
       <footer className="mt-16 border-t border-whisper pt-6 text-sm text-stone">
-        Jacques design system · locked in <code className="font-mono">DESIGN.md</code>. This page is a
-        living reference: tokens, type, components, motion, and the bans.
+        Jacques design system · locked in <code className="font-mono">DESIGN.md</code>. This page is
+        a living reference: tokens, type, components, motion, and the bans.
       </footer>
     </main>
   );
