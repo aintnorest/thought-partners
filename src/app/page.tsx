@@ -19,27 +19,27 @@ export default function Home() {
   return (
     <main className="mx-auto flex min-h-dvh max-w-3xl flex-col gap-12 px-6 py-16">
       <header className="flex flex-col gap-4">
-        <span className="inline-flex w-fit items-center gap-2 rounded-full bg-paprika/15 px-3 py-1 text-xs font-medium text-paprika">
+        <span className="inline-flex w-fit items-center gap-2 rounded-full bg-ember/15 px-3 py-1 text-xs font-medium text-ember">
           PWA · Agentic Sous Chef
         </span>
         <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">Jacques</h1>
-        <p className="max-w-prose text-lg text-neutral-400">
+        <p className="max-w-prose text-lg text-stone">
           A sous chef that coaches home cooks through recipes in real time — step-by-step guidance,
           on-the-fly visuals, and voice.
         </p>
       </header>
 
       <section className="flex flex-col gap-4">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-neutral-500">Recipes</h2>
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-stone">Recipes</h2>
         <ul className="grid gap-4 sm:grid-cols-2">
           {recipes.map((recipe) => (
             <li key={recipe.id}>
               <Link
                 href={`/api/recipes/${recipe.id}`}
-                className="flex h-full flex-col gap-3 rounded-2xl border border-neutral-800 bg-neutral-900/50 p-5 transition hover:border-paprika/60 hover:bg-neutral-900"
+                className="flex h-full flex-col gap-3 rounded-2xl border border-whisper bg-raised/50 p-5 transition hover:border-ember/60 hover:bg-raised"
               >
                 <span className="text-lg font-medium text-cream">{recipe.title}</span>
-                <span className="mt-auto flex flex-wrap gap-x-4 gap-y-1 text-sm text-neutral-400">
+                <span className="mt-auto flex flex-wrap gap-x-4 gap-y-1 text-sm text-stone">
                   <span>
                     {recipe.servings} serving{recipe.servings === 1 ? "" : "s"}
                   </span>
@@ -52,13 +52,13 @@ export default function Home() {
         </ul>
       </section>
 
-      <footer className="mt-auto flex flex-col gap-2 border-t border-neutral-800 pt-6 text-sm text-neutral-500">
-        <span className="font-medium text-neutral-400">API</span>
+      <footer className="mt-auto flex flex-col gap-2 border-t border-whisper pt-6 text-sm text-stone">
+        <span className="font-medium text-stone">API</span>
         <div className="flex flex-wrap gap-x-6 gap-y-1">
-          <Link className="hover:text-paprika" href="/api/health">
+          <Link className="hover:text-ember" href="/api/health">
             GET /api/health
           </Link>
-          <Link className="hover:text-paprika" href="/api/recipes">
+          <Link className="hover:text-ember" href="/api/recipes">
             GET /api/recipes
           </Link>
         </div>

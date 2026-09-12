@@ -1,0 +1,81 @@
+/* Hallmark · macrostructure: Long Document · tone: atmospheric · route: system-managed (DESIGN.md)
+ * theme axes: dark paper / geometric-sans (Outfit) / warm accent (ember ~3%)
+ * tokens locked from DESIGN.md — single source for jacques screens */
+
+@theme {
+  /* Colour roles (DESIGN.md §2 — locked hex values) */
+  --color-cast: #1b1916; /* page background, PWA theme_color */
+  --color-raised: #262320; /* card / sheet surfaces */
+  --color-cream: #f5f2ec; /* primary text */
+  --color-stone: #a8a29a; /* secondary text, inactive dots */
+  --color-ember: #de6b3f; /* THE accent — CTA, current step, ring, focus */
+  --color-herb: #5fa87a; /* status good / done — never a button */
+  --color-saffron: #e2a33c; /* status close / heartbeat / expiring */
+  --color-brick: #d9604f; /* status off / destructive — outline only */
+  --color-whisper: #f5f2ec14; /* 1px hairlines, dividers, input strokes */
+
+  /* Typography (DESIGN.md §3) */
+  --font-sans: "Outfit", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+
+  /* Type scale */
+  --text-step-title: clamp(2rem, 7vw, 3.25rem);
+  --text-step-detail: clamp(1.25rem, 3.5vw, 1.5rem);
+  --text-meta: 0.875rem;
+  --text-timer: clamp(3rem, 12vw, 5rem);
+
+  /* Shape */
+  --radius-card: 1.5rem;
+  --radius-pill: 9999px;
+
+  /* Motion — spring spec (stiffness 100, damping 20), CSS fallback curve */
+  --ease-jacques: cubic-bezier(0.22, 1, 0.36, 1);
+  --dur-step-cascade: 60ms;
+  --dur-verdict: 220ms;
+}
+
+/* Perpetual micro-loops allowed by DESIGN.md §6: shimmer, ember pulse, ring sweep */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes ember-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 var(--color-ember);
+    opacity: 1;
+  }
+  50% {
+    box-shadow: 0 0 0 6px transparent;
+    opacity: 0.6;
+  }
+}
+
+@keyframes amber-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.55;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .shimmer {
+    background: linear-gradient(90deg, var(--color-raised) 25%, #302c28 50%, var(--color-raised) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.4s linear infinite;
+  }
+  .pulse-ember {
+    animation: ember-pulse 1.8s ease-in-out infinite;
+  }
+  .pulse-amber {
+    animation: amber-pulse 1.6s ease-in-out infinite;
+  }
+}
