@@ -31,6 +31,14 @@ Artwork sources live in `scripts/demo-images/`. Run `pnpm fixture-images` (or `n
 
 `?noimages=1` suppresses image rendering and requests in both the gallery and walkthrough. Carbonara images use the existing fixture prewarm below. For an offline gallery demo on production, visit the app first to activate its service worker, open the gallery, and scroll through the stages you will show while still online.
 
+## Jackfruit taco demo video
+
+Open `/jackfruit-demo.html` for a **1:54 narrated, captioned walkthrough** with chapter controls, a transcript, and downloads. The 1920×1080 H.264/AAC recording is at `/demos/jackfruit-tacos.mp4`; English captions are at `/demos/jackfruit-tacos.vtt`. Download the MP4 before presenting for network-independent playback.
+
+The video uses actual app screens with a prepared plan based on `samples/cooklang/exotic/young-jackfruit-tacos.cook`. It shows recipe input, prep and texture cues, question prompts, a started timer, the current Watch Me panel, and plating. It is a scripted screenshot walkthrough with synthetic narration and instructional illustrations—not live recipe generation, live Q&A, cooking footage, or AI food assessment. It does not add jackfruit selection to the app.
+
+The player honors `?noimages=1` by loading neither the video nor its poster; the transcript and explicit download links remain available. Voice in the MP4 is prerecorded narration, not the app's microphone/voice feature.
+
 ## Microphone and camera check
 
 Open `/?fixture=1`, use the bottom **Microphone capture** control or scroll to **Watch Me**, and select **Start capture**. Allow camera and microphone access to see the live preview and input-level meter. Fixture mode keeps media on the device and sends no API requests. The demo fix/readiness buttons show explicitly scripted examples, not model output. Timers run without stopping capture; navigating to another step releases both devices.
