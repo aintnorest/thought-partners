@@ -15,3 +15,17 @@ Agentic sous chef that coaches home cooks through recipes in real-time.
 ## Ideas
 
 - Standardize on a recipe data format, like [Cooklang](https://cooklang.org/).
+- Diet-friendly recipes (vegan, etc.)
+- Nutrition fact generation (grounded in search / facts)
+- Exoctic ingredients that people don't know how to work with (like dragon fruit). Or how to use them / combine them.
+- General information about the kitchen, like what kind of knife to use for a given task.
+
+## Tasks
+
+- Recipe parsing & conversion
+- Decide on agent SDK to use
+- Generating UI steps and building design system / components
+- Server / host setup for agent runtime
+- Create/configure basic sous chef agent (instructions, etc.)
+- Agent Q&A handling
+- Voice mode / OpenAI real-time API integration?
