@@ -59,13 +59,13 @@ type Recipe = {
 };
 ```
 
-This PR adds the one small data hook Watch Me needs: optional `doneWhen` cues on `RecipeStep`. The main app still does **not** yet have the richer `RecipePlan`/`Step` contract from `docs/PLAN.md`, a Zustand walkthrough store, `/api/import`, `/api/realtime`, or a recipe walkthrough route. Therefore Watch Me must stay additive:
+Current implementation includes the one small data hook Watch Me needs: optional `doneWhen` cues on `RecipeStep`. The main app still does **not** yet have the richer `RecipePlan`/`Step` contract from `docs/PLAN.md`, a Zustand walkthrough store, `/api/import`, `/api/realtime`, or a recipe walkthrough route. Therefore Watch Me must stay additive:
 
 - bind first to the current seeded `Recipe` / `RecipeStep` shape
 - treat `RecipeStep.instruction` as the visible step text
 - use `RecipeStep.doneWhen` as the visual target when available
 - move state into the shared walkthrough store only after that store lands
-- keep the OpenRouter key server-side; `.env.example` will name only `OPENROUTER_API_KEY`
+- keep the OpenRouter key server-side; `.env.example` names only `OPENROUTER_API_KEY`
 
 ## Priority
 
@@ -199,6 +199,7 @@ function toWatchableStep(step: RecipeStep): WatchableStep {
     title: step.instruction,
     instruction: step.instruction,
     durationSeconds: step.durationSeconds,
+    doneWhen: step.doneWhen,
   };
 }
 ```
@@ -446,7 +447,7 @@ Track C owns:
 - frame capture loop
 - kill switch
 
-Track A does not need to change anything for the first Watch Me pass. In the current scaffold, that means no required edits to `src/lib/recipes.ts`, `/api/recipes`, or `/api/recipes/[id]`.
+Track A does not need to change anything else for the first Watch Me pass. The current scaffold already has `RecipeStep.doneWhen`; no further required edits to `src/lib/recipes.ts`, `/api/recipes`, or `/api/recipes/[id]`.
 
 ## Kill switches
 

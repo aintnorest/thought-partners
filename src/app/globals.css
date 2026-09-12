@@ -12,9 +12,28 @@
   --color-saffron: #e2a33c;
   --color-brick: #d9604f;
 
+  /* Short aliases for the design-system reference page (src/app/design-system) — same values;
+     the DESIGN.md §2 names above remain canonical for product surfaces. */
+  --color-cast: var(--color-cast-iron);
+  --color-raised: var(--color-raised-charcoal);
+  --color-cream: var(--color-warm-off-white);
+  --color-stone: var(--color-stone-gray);
+  --color-whisper: var(--color-whisper-warm);
+
   /* DESIGN.md §3 — Outfit for display/body, JetBrains Mono for anything read against a clock. */
   --font-sans: var(--font-outfit), system-ui, sans-serif;
   --font-mono: var(--font-jetbrains-mono), ui-monospace, monospace;
+
+  /* Type scale / shape / motion tokens used by the design-system reference page */
+  --text-step-title: clamp(2rem, 7vw, 3.25rem);
+  --text-step-detail: clamp(1.25rem, 3.5vw, 1.5rem);
+  --text-meta: 0.875rem;
+  --text-timer: clamp(3rem, 12vw, 5rem);
+  --radius-card: 1.5rem;
+  --radius-pill: 9999px;
+  --ease-jacques: cubic-bezier(0.22, 1, 0.36, 1);
+  --dur-step-cascade: 60ms;
+  --dur-verdict: 220ms;
 
   /* DESIGN.md §6 — spring feel (stiffness 100 / damping 20). Never linear. */
   --ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
@@ -110,6 +129,53 @@
   }
 }
 
+/* Plain keyframes/utilities for the design-system reference page (src/app/design-system).
+   Named distinctly from the animate-* theme keys above to avoid @keyframes name collisions. */
+@keyframes shimmer-sweep {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes ring-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 var(--color-ember);
+    opacity: 1;
+  }
+  50% {
+    box-shadow: 0 0 0 6px transparent;
+    opacity: 0.6;
+  }
+}
+
+@keyframes amber-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.55;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .shimmer {
+    background: linear-gradient(90deg, var(--color-raised) 25%, #302c28 50%, var(--color-raised) 75%);
+    background-size: 200% 100%;
+    animation: shimmer-sweep 1.4s linear infinite;
+  }
+  .pulse-ember {
+    animation: ring-pulse 1.8s ease-in-out infinite;
+  }
+  .pulse-amber {
+    animation: amber-pulse 1.6s ease-in-out infinite;
+  }
+}
+
 :root {
   color-scheme: dark;
 }
@@ -117,6 +183,7 @@
 html,
 body {
   min-height: 100%;
+  overflow-x: clip;
 }
 
 body {

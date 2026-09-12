@@ -11,13 +11,14 @@ Agentic sous chef that coaches home cooks through recipes in real-time.
 - Vision mode. User can take a picture of cooking in progress and get feedback if the result looks correct.
 - Voice mode. Sous chef talks the recipe steps out loud and can respond in real-time converstaion with the user as they cook.
 - Heart beat. Periodically checks in on progress during a step to see how the home cook is doing. For example, during a longer step, like simmering.
+- Watch Me mode. Jacques can use camera-assisted visual cues during a step, staying quiet when things look right and speaking when a visible correction matters.
 
 ## Ideas
 
-- Standardize on a recipe data format, like [Cooklang](https://cooklang.org/).
+- Standardize on a recipe data format, like [Cooklang](https://cooklang.org/). Current samples live in `samples/cooklang/`.
 - Diet-friendly recipes (vegan, etc.)
 - Nutrition fact generation (grounded in search / facts)
-- Exoctic ingredients that people don't know how to work with (like dragon fruit). Or how to use them / combine them.
+- Exotic ingredients that people don't know how to work with (like dragon fruit), including how to cut, prep, use, or combine them.
 - General information about the kitchen, like what kind of knife to use for a given task.
 
 ## Tasks

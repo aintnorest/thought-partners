@@ -33,6 +33,7 @@
 - **Images:** OpenRouter Image API (`google/gemini-3.1-flash-lite-image`; fall back to `google/gemini-2.5-flash-image`) — **pre-generated at plan time**, cached by prompt hash, never blocking a step render. Style prompt is fixed (clean instructional sketch, white background, top-down) so the set looks coherent.
 - **Vision:** single multimodal call, photo + step context → strict JSON verdict. No agent loop.
 - **Model pins live in exactly one file** (`src/lib/models.ts`) as namespaced OpenRouter model IDs, so a rate limit or outage is a one-line swap.
+- **Sample recipes:** curated Cooklang-style samples live in `samples/cooklang/`, grouped by `familiar/`, `exotic`, and `centerpiece`. Cooklang import remains cut from the POC; the samples are demo/planner fixtures and include `-- watch:` comments for Watch Me visual cues.
 - **Fixture-first:** `src/fixtures/plan.carbonara.json` is committed in the first 15 minutes. UI work never waits on the parser, and the demo has a keyboard fallback if the network dies.
 
 ## 3. Frozen contracts (written at T+0:15, changed only by announcing in chat)
