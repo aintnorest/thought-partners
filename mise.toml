@@ -1,2 +1,5 @@
 [tools]
-pnpm = "latest"
+# mise's default aqua:pnpm/pnpm omits darwin/amd64 and its npm backend skips
+# pnpm's postinstall, so neither works on Intel Macs. ubi pulls the GitHub
+# release binary, which pnpm ships for every platform.
+"ubi:pnpm/pnpm" = "latest"
