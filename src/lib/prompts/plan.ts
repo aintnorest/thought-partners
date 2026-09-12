@@ -15,7 +15,7 @@ Requirements:
 - Give every step a concrete sensory doneWhen cue.
 - Keep each title at 60 characters or fewer. Write detail as 1–3 imperative sentences suitable for speaking aloud, with no preamble.
 - Set durationSec on every timed step. For wait steps, set attentionSec to about one third of durationSec.
-- Add imagePrompt only when a visual teaches a knife cut, doneness state, fold, or similarly visual technique. Make it content-only: subject and action. Never mention medium, style, lighting, viewpoint, camera, composition, or background.
+- Add imagePrompt when a visual teaches a knife cut, doneness state, fold, or similarly visual technique. The final plate step ALWAYS gets an imagePrompt describing the finished dish as served (what the cook should see on the plate). Make every imagePrompt content-only: subject and action. Never mention medium, style, lighting, viewpoint, camera, composition, or background.
 - Use ingredient names consistently with the top-level ingredients list.
 - Return only data matching the required schema.${retryInstruction}
 

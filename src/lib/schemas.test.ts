@@ -57,4 +57,15 @@ describe("plan schemas", () => {
       makeStep("s2", { parallelWith: ["s1"] }),
     ]);
   });
+
+  it("gives the final plate step an image prompt when the model omitted one", () => {
+    const plan = makePlan([
+      makeStep("s1", { imagePrompt: "shrimp turning pink" }),
+      makeStep("s2", { kind: "plate" }),
+    ]);
+
+    const steps = normalizePlan(plan).steps;
+    expect(steps[0].imagePrompt).toBe("shrimp turning pink");
+    expect(steps[1].imagePrompt).toBe(`${plan.title} plated and ready to serve`);
+  });
 });

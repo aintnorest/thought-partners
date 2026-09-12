@@ -114,6 +114,8 @@ export function normalizePlan(plan: RecipePlan): RecipePlan {
     }
   }
 
+  const lastPlateId = plan.steps.findLast((step) => step.kind === "plate")?.id;
+
   return {
     ...plan,
     steps: plan.steps.map((step) => {
@@ -123,6 +125,11 @@ export function normalizePlan(plan: RecipePlan): RecipePlan {
 
       if (step.parallelWith !== undefined || (parallel?.size ?? 0) > 0) {
         cleanStep.parallelWith = [...(parallel ?? [])];
+      }
+
+      // The finished dish is the one visual every walkthrough must have (vision.md "what the result should look like").
+      if (step.id === lastPlateId && !cleanStep.imagePrompt) {
+        cleanStep.imagePrompt = `${plan.title} plated and ready to serve`;
       }
 
       return cleanStep;
