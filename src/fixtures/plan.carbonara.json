@@ -55,7 +55,7 @@
       "detail": "Slice the guanciale into 1 cm batons so the fat renders evenly while the meat stays crisp at the edges.",
       "ingredients": ["guanciale"],
       "tools": ["chef's knife", "cutting board"],
-      "imagePrompt": "Overhead instructional food photograph of guanciale being cut into even 1 cm batons on a dark cutting board, chef's knife visible, warm natural kitchen light",
+      "imagePrompt": "Guanciale being sliced into even 1 cm batons, skin removed, chef's knife mid-cut",
       "imageUrl": "/images/carbonara/chop-guanciale.png",
       "questions": [
         "How thick should each baton be?",
@@ -147,7 +147,7 @@
       "detail": "Add the drained spaghetti to the off-heat skillet with the guanciale and fat. Pour in the tempered egg mixture and toss constantly, adding reserved pasta water by the splash until the sauce clings silkily to every strand.",
       "ingredients": ["spaghetti", "guanciale", "large eggs", "Pecorino Romano", "black pepper"],
       "tools": ["large skillet", "tongs"],
-      "imagePrompt": "Close instructional food photograph of spaghetti, guanciale, and egg Pecorino sauce being tossed with tongs in an off-heat dark skillet, sauce visibly glossy and creamy, warm kitchen light",
+      "imagePrompt": "Spaghetti, guanciale, and egg-Pecorino sauce tossed together with tongs in a skillet, sauce glossy and creamy and clinging to the strands",
       "imageUrl": "/images/carbonara/combine-pasta.png",
       "questions": [
         "Why must the skillet be off the heat?",
@@ -163,7 +163,7 @@
       "detail": "Twirl the carbonara into warm bowls, distribute the crisp guanciale, and finish with the reserved Pecorino and black pepper. Serve immediately.",
       "ingredients": ["spaghetti", "guanciale", "Pecorino Romano", "black pepper"],
       "tools": ["tongs"],
-      "imagePrompt": "Finished spaghetti carbonara twirled in a warm shallow bowl, glossy sauce, crisp guanciale, finely grated Pecorino and black pepper on top, elegant realistic food photography, warm charcoal backdrop",
+      "imagePrompt": "Finished spaghetti carbonara twirled into a nest in a shallow bowl, glossy sauce, crisp guanciale, grated Pecorino and cracked black pepper on top",
       "imageUrl": "/images/carbonara/plate-carbonara.png",
       "questions": [
         "How do I make a neat pasta twirl?",
