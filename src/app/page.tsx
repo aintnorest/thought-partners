@@ -281,15 +281,16 @@ function Walkthrough({ flags }: { flags: Flags }) {
   const stepIndex = useStore((state) => state.stepIndex);
   const generation = useStore((state) => state.generation);
   const step = useStore(selectCurrentStep);
-  const heartbeat = useStore(selectHeartbeatFor(step!.id));
-  const verdict = useStore(selectVerdictFor(step!.id));
-  const answerCard = useStore(selectAnswerFor(step!.id));
+  const stepId = step?.id ?? "";
+  const heartbeat = useStore(selectHeartbeatFor(stepId));
+  const verdict = useStore(selectVerdictFor(stepId));
+  const answerCard = useStore(selectAnswerFor(stepId));
   const [dismissed, setDismissed] = useState<VerdictCardData>();
   const cards = useStore((state) => state.cards);
   const watchCards = flags.fixture
     ? cards.filter(
         (card): card is WatchFixCard | WatchReadyCard =>
-          (card.kind === "watch_fix" || card.kind === "watch_ready") && card.stepId === step!.id,
+          (card.kind === "watch_fix" || card.kind === "watch_ready") && card.stepId === stepId,
       )
     : [];
   const showWatchMe = !flags.nowatch && isWatchableStep(step);
