@@ -1,0 +1,134 @@
+export class ValidationError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "ValidationError";
+  }
+}
+
+export type RecipeStep = {
+  id: string;
+  instruction: string;
+  durationSeconds?: number;
+};
+
+export type Recipe = {
+  id: string;
+  title: string;
+  servings: number;
+  steps: RecipeStep[];
+};
+
+const store = new Map<string, Recipe>();
+
+function slugify(value: string): string {
+  return value
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+function uniqueId(base: string): string {
+  const root = base || "recipe";
+  let id = root;
+  while (store.has(id)) {
+    id = `${root}-${Math.random().toString(16).slice(2, 6)}`;
+  }
+  return id;
+}
+
+/** Returns every recipe currently known to the sous chef. */
+export function listRecipes(): Recipe[] {
+  return [...store.values()];
+}
+
+/** Returns a single recipe by id, or `undefined` when it does not exist. */
+export function getRecipe(id: string): Recipe | undefined {
+  return store.get(id);
+}
+
+/** Validates untrusted input and persists a new recipe, returning the stored value. */
+export function createRecipe(input: unknown): Recipe {
+  if (typeof input !== "object" || input === null) {
+    throw new ValidationError("body must be an object");
+  }
+
+  const { title, servings, steps } = input as Record<string, unknown>;
+
+  if (typeof title !== "string" || title.trim() === "") {
+    throw new ValidationError("title is required");
+  }
+  if (typeof servings !== "number" || !Number.isInteger(servings) || servings < 1) {
+    throw new ValidationError("servings must be a positive integer");
+  }
+  if (!Array.isArray(steps) || steps.length === 0) {
+    throw new ValidationError("steps must be a non-empty array");
+  }
+
+  const normalizedSteps: RecipeStep[] = steps.map((raw, index) => {
+    if (typeof raw !== "object" || raw === null) {
+      throw new ValidationError(`step ${index + 1} must be an object`);
+    }
+    const { instruction, durationSeconds } = raw as Record<string, unknown>;
+    if (typeof instruction !== "string" || instruction.trim() === "") {
+      throw new ValidationError(`step ${index + 1} instruction is required`);
+    }
+    if (
+      durationSeconds !== undefined &&
+      (typeof durationSeconds !== "number" || durationSeconds < 0)
+    ) {
+      throw new ValidationError(`step ${index + 1} durationSeconds must be a non-negative number`);
+    }
+    return {
+      id: "",
+      instruction: instruction.trim(),
+      ...(durationSeconds !== undefined ? { durationSeconds } : {}),
+    };
+  });
+
+  const id = uniqueId(slugify(title));
+  for (const [index, step] of normalizedSteps.entries()) {
+    step.id = `${id}-${index + 1}`;
+  }
+
+  const recipe: Recipe = { id, title: title.trim(), servings, steps: normalizedSteps };
+  store.set(id, recipe);
+  return recipe;
+}
+
+/** Sums the known step durations, in seconds. Steps without a duration count as zero. */
+export function estimateTotalSeconds(recipe: Recipe): number {
+  return recipe.steps.reduce((sum, step) => sum + (step.durationSeconds ?? 0), 0);
+}
+
+// Seed a couple of recipes so the app and API have content out of the box.
+createRecipe({
+  title: "Classic French Omelette",
+  servings: 1,
+  steps: [
+    {
+      instruction: "Crack 3 eggs into a bowl, season with salt, and beat until uniform.",
+      durationSeconds: 60,
+    },
+    { instruction: "Melt butter in a non-stick pan over medium-low heat.", durationSeconds: 90 },
+    { instruction: "Pour in the eggs and stir constantly with a spatula.", durationSeconds: 120 },
+    {
+      instruction: "When just set but still glossy, fold and roll onto a plate.",
+      durationSeconds: 45,
+    },
+  ],
+});
+
+createRecipe({
+  title: "Simple Marinara",
+  servings: 4,
+  steps: [
+    {
+      instruction: "Warm olive oil and gently sweat minced garlic until fragrant.",
+      durationSeconds: 120,
+    },
+    { instruction: "Add crushed tomatoes, salt, and a pinch of sugar.", durationSeconds: 60 },
+    { instruction: "Simmer, stirring occasionally, until thickened.", durationSeconds: 1200 },
+    { instruction: "Finish with torn basil and a drizzle of olive oil.", durationSeconds: 30 },
+  ],
+});

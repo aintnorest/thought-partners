@@ -1,0 +1,15 @@
+@import "tailwindcss";
+
+@theme {
+  --color-paprika: #e8552d;
+  --color-cream: #fff7ed;
+}
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body {
+  min-height: 100%;
+}
