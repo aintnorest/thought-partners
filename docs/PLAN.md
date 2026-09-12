@@ -91,8 +91,10 @@ API surface (owner A implements, owners B/C consume):
 Client state (owner B owns the store, owner C only calls its actions) — `src/lib/store.ts`, Zustand:
 
 ```ts
-{ plan, stepIndex, timers, lastVerdict,
-  next(), prev(), repeat(), goto(i), startTimer(sec), pushCard(card) }
+{ plan, stepIndex, cards, activeTimer, generation,
+  setPlan(plan), next(), prev(), repeat(), goto(i), startTimer(sec), cancelTimer(), pushCard(card) }
+// exported: useStore (Zustand hook), selectActiveTimer(state) → { stepId, startedAt, sec, generation } | undefined
+// Card = { kind: "heartbeat"; stepId; line } | …  — see docs/features/glue-and-deploy/system-design.md §5
 ```
 
 ## 4. Work split — disjoint file ownership
@@ -101,7 +103,7 @@ Three tracks, chosen so nobody edits the same file. Conflicts are the #1 killer 
 
 ### Track A — Planner & Agent Brains (server only)
 
-Owns `src/app/api/**`, `src/lib/prompts/**`, `src/lib/models.ts`, `src/fixtures/**`.
+Owns `src/app/api/**` except `src/app/api/health/**`, `src/lib/prompts/**`, `src/lib/models.ts` values, `src/fixtures/**` after the contract commit.
 
 - `RecipePlan` generation: URL fetch → readable text → `generateObject` with the zod mirror of `RecipePlan`. Hard prompt requirements: mise en place first, merge trivially-serial steps, mark `parallelWith`, always 3 `questions`, always a `doneWhen`, `imagePrompt` only for steps where a visual actually teaches something (knife cuts, doneness, folds).
 - `/api/ask`: streams; system prompt carries whole plan + current step; answer style "≤ 60 words, imperative, no preamble".
@@ -112,7 +114,7 @@ Owns `src/app/api/**`, `src/lib/prompts/**`, `src/lib/models.ts`, `src/fixtures/
 
 ### Track B — Walkthrough UI & Design System (client only)
 
-Owns `src/app/(app)/**` pages, `src/components/**`, `src/lib/store.ts`, `tailwind.config`, globals.
+Owns `src/app/page.tsx` and `src/app/(app)/**` pages, `src/components/**`, `src/lib/store.ts`, `tailwind.config`, globals.
 
 - Kitchen-grade shell: huge type, dark bg, thumb-sized hit targets, works on a phone propped against a bowl.
 - `StepCard` variants per `StepKind`; `Timeline`/progress rail; `QuestionCards`; `Timer` with ring; `ImagePanel` with skeleton→fade-in; `CameraCapture` (`<input type="file" capture="environment">` — no getUserMedia plumbing needed); `VerdictCard`; `HeartbeatToast`.
@@ -121,9 +123,9 @@ Owns `src/app/(app)/**` pages, `src/components/**`, `src/lib/store.ts`, `tailwin
 
 ### Track C — Voice, Glue, Deploy (integration owner)
 
-Owns `src/lib/realtime/**`, `src/app/api/realtime/**`, `src/app/layout.tsx`, `.env.example`, Vercel project, README/pitch.
+Owns `src/lib/glue/**`, `src/lib/realtime/**`, `src/app/api/realtime/**`, `src/app/api/health/**`, `src/app/layout.tsx`, `.env.example`, `vercel.json`, Vercel project, README/pitch.
 
-- **First 15 min: scaffold and push `main`** (`bunx create-next-app`, Tailwind, `src/lib/types.ts` verbatim from §3, fixture file, empty route handlers returning fixture/501). Everything else in the team unblocks off this commit.
+- **First 15 min: contract commit on `main`** (existing pnpm scaffold, `src/lib/types.ts` verbatim from §3, fixture file, empty route handlers returning fixture/501). Everything else in the team unblocks off this commit. Done: see `docs/features/glue-and-deploy/system-design.md`.
 - **Deploy to Vercel before writing any voice code** — a broken deploy discovered at T+3:30 is a lost demo.
 - `useJacquesVoice()` hook: capture microphone turns → POST to the server-side OpenRouter proxy → play streamed audio and handle transcript/tool events → call store actions. Send `plan` + current step with every turn so Jacques always knows where we are.
 - Heartbeat wiring: when a `wait` step's `attentionSec` elapses, `/api/heartbeat` → speak line via the live session if connected, else toast.

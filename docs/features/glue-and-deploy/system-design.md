@@ -2,7 +2,7 @@
 
 **Feature:** Track C of `docs/PLAN.md` §4 minus the voice work (`useJacquesVoice()`, `src/lib/realtime/**`, `/api/realtime`). Voice is a separate feature; this design defines only the boundary it plugs into.
 **Sources:** `docs/PLAN.md` @ `7c9591d` (§2–§7), `docs/vision.md` @ `d832adb`, working tree @ `60cbf0d`.
-**Status:** decided after two review rounds; no open decisions.
+**Status:** implemented on `main` (C1, C2 complete; C3 code complete, UI-observable exit checks await Track B). Parent synced.
 
 ## 1. Scope and non-goals
 
@@ -36,16 +36,16 @@ flowchart LR
 
 ## 3. Components and responsibility boundaries
 
-All C-owned client code lives under `src/lib/glue/**` `[PROPOSED]`, a path added to Track C's ownership column (§13) so nothing C writes lands in Track B's `src/components/**`.
+All C-owned client code lives under `src/lib/glue/**` `[EXISTS]`, a path added to Track C's ownership column (§13) so nothing C writes lands in Track B's `src/components/**`.
 
 | Component | Owner files | Responsibility | Not responsible for |
 | --- | --- | --- | --- |
 | Contract commit | `src/lib/types.ts`, `src/fixtures/plan.carbonara.json`, `src/lib/models.ts` (stub), `src/app/api/{import,images,ask,vision,heartbeat}/route.ts` (stubs) | Publish the frozen shapes from `docs/PLAN.md` §3 on `main` at T+0:15. | Prompt text, real handler logic, UI components. |
 | Repository reconciliation | `src/lib/recipes.ts`, `src/lib/recipes.test.ts`, `src/app/api/recipes/**` (incl. `route.test.ts`), `src/app/page.tsx` | Remove the pre-plan recipe model so only one recipe type exists; reduce `src/app/page.tsx` to a placeholder and hand it to Track B (decision D1). | `src/app/offline/**` and `src/app/api/health/**` tests, which stay. |
 | Deploy | Vercel project, `.env.example`, `src/app/api/health/route.ts` `[EXISTS]`, `pnpm build` gate | A public URL serving `main`, env keys present and reported by `/api/health`, build green at each checkpoint. | Per-route runtime behavior. |
-| Kill switches | `src/lib/glue/flags.ts` `[PROPOSED]` | Parse `?fixture=1`, `?noimages=1`, `?novoice=1` once per page load into a typed `Flags` object. | What a flag means inside another track's component beyond the rules in §6. |
-| Client bootstrap | `src/lib/glue/app-bootstrap.tsx` `[PROPOSED]`, mounted in `src/app/layout.tsx` `[EXISTS]` | Read flags, install the fixture plan when `fixture` is set, prewarm fixture images, then render children. | Anything rendered inside the walkthrough. |
-| Heartbeat scheduler | `src/lib/glue/heartbeat-scheduler.tsx` `[PROPOSED]`, mounted by the bootstrap | Subscribe to the store's active timer; on each attention tick, obtain a line (route or fixture) and push a heartbeat card. | The route body (Track A) and the toast visuals (Track B). |
+| Kill switches | `src/lib/glue/flags.ts` `[EXISTS]` | Parse `?fixture=1`, `?noimages=1`, `?novoice=1` once per page load into a typed `Flags` object. | What a flag means inside another track's component beyond the rules in §6. |
+| Client bootstrap | `src/lib/glue/app-bootstrap.tsx` `[EXISTS]`, mounted in `src/app/layout.tsx` `[EXISTS]` | Read flags, install the fixture plan when `fixture` is set, prewarm fixture images, then render children. | Anything rendered inside the walkthrough. |
+| Heartbeat scheduler | `src/lib/glue/heartbeat-scheduler.tsx` `[EXISTS]`, mounted by the bootstrap | Subscribe to the store's active timer; on each attention tick, obtain a line (route or fixture) and push a heartbeat card. | The route body (Track A) and the toast visuals (Track B). |
 | Demo readiness | `README.md`, backup recording | Run-throughs on the demo device and network. | Not a slice — tasks in the implementation plan. |
 
 ## 4. End-to-end flow (one heartbeat)
@@ -72,8 +72,8 @@ Ownership transfers at `pushCard`: after that call the line is client state owne
 
 ## 5. Shared state and consistency
 
-- **Single source of client state** is the Zustand store in `src/lib/store.ts` `[PROPOSED, owned by Track B]`. This feature calls actions and selectors only; it never writes store fields directly (`docs/PLAN.md` §3 "owner C only calls its actions").
-- **Store boundary this feature consumes** `[PROPOSED]` — the announced additive update to the `docs/PLAN.md` §3 frozen store contract; Track B implements, this document owns the signatures:
+- **Single source of client state** is the Zustand store in `src/lib/store.ts` `[EXISTS, owned by Track B]`. This feature calls actions and selectors only; it never writes store fields directly (`docs/PLAN.md` §3 "owner C only calls its actions").
+- **Store boundary this feature consumes** `[EXISTS]` — the announced additive update to the `docs/PLAN.md` §3 frozen store contract; Track B implements, this document owns the signatures:
 
   ```ts
   export const useStore: UseBoundStore<StoreApi<StoreState>>   // the Zustand hook; also usable as useStore.getState()
@@ -94,11 +94,11 @@ Ownership transfers at `pushCard`: after that call the line is client state owne
 The root layout `src/app/layout.tsx` `[EXISTS]` is a Server Component with no access to search params, so flags are read on the client inside the bootstrap, and the bootstrap withholds its children until initialization is done. That ordering is what lets consumers assume `store.plan` is set in fixture mode.
 
 ```ts
-// src/lib/glue/flags.ts  [PROPOSED] — client module
+// src/lib/glue/flags.ts  [EXISTS] — client module
 export interface Flags { fixture: boolean; noimages: boolean; novoice: boolean }
 export function readFlags(search: string): Flags   // "1" | "true" → true
 
-// src/lib/glue/app-bootstrap.tsx  [PROPOSED] — "use client"; mounted once in layout.tsx around {children}
+// src/lib/glue/app-bootstrap.tsx  [EXISTS] — "use client"; mounted once in layout.tsx around {children}
 // 1. flags = readFlags(window.location.search); publish via React context (useFlags()).
 // 2. if flags.fixture: useStore.getState().setPlan(carbonaraFixture); prewarm images (below).
 // 3. render children only after steps 1–2; render nothing during SSR.
@@ -138,12 +138,12 @@ Error body for every stub this feature commits: `{ error: string }` with a 4xx/5
 
 | Interface | Label | Note |
 | --- | --- | --- |
-| `src/lib/types.ts` (`StepKind`, `Step`, `RecipePlan`, `VisionVerdict`) | `[PROPOSED]` | Verbatim from `docs/PLAN.md` §3; additive optional fields only after T+0:15. |
-| `src/lib/models.ts` exporting named string ids, one per model use | `[PROPOSED]` | C commits the stub so C's own token route can import it; the key set and values are Track A's from the contract commit onward. |
-| `src/fixtures/plan.carbonara.json` conforming to `RecipePlan` | `[PROPOSED]` | C commits it; Track A owns it afterwards (`docs/PLAN.md` §4A). Must include one `wait` step with `attentionSec ≤ 20` and a non-empty `doneWhen` so a heartbeat is demonstrable in under a minute. |
-| Route stubs for `docs/PLAN.md` §3 lines 81–88 | `[PROPOSED]` | Stub bodies only (§7). |
-| `src/lib/store.ts` `useStore`, `setPlan`, heartbeat `pushCard` discriminant, `selectActiveTimer` | `[PROPOSED, Track B implements]` | Signatures in §5. |
-| `src/lib/glue/flags.ts` `readFlags`, `src/lib/glue/app-bootstrap.tsx` `useFlags` | `[PROPOSED]` | Signatures in §6. |
+| `src/lib/types.ts` (`StepKind`, `Step`, `RecipePlan`, `VisionVerdict`, `Card`) | `[EXISTS]` | Verbatim from `docs/PLAN.md` §3; additive optional fields only after T+0:15. |
+| `src/lib/models.ts` exporting named string ids, one per model use | `[EXISTS]` | C commits the stub so C's own token route can import it; the key set and values are Track A's from the contract commit onward. |
+| `src/fixtures/plan.carbonara.json` conforming to `RecipePlan` | `[EXISTS]` | C commits it; Track A owns it afterwards (`docs/PLAN.md` §4A). Must include one `wait` step with `attentionSec ≤ 20` and a non-empty `doneWhen` so a heartbeat is demonstrable in under a minute. |
+| Route stubs for `docs/PLAN.md` §3 lines 81–88 | `[EXISTS]` | Stub bodies only (§7). |
+| `src/lib/store.ts` `useStore`, `setPlan`, heartbeat `pushCard` discriminant, `selectActiveTimer` | `[EXISTS, Track B owns]` | Signatures in §5. |
+| `src/lib/glue/flags.ts` `readFlags`, `src/lib/glue/app-bootstrap.tsx` `useFlags` | `[EXISTS]` | Signatures in §6. |
 | `GET /api/health` `keys: { openrouter: boolean }` | `[EXISTS]` | Presence only, never values. Route reassigned to Track C (§13). |
 | `.env.example` key `OPENROUTER_API_KEY` | `[EXISTS]` | Sole provider key. |
 | Provider deps `ai@7`, `@openrouter/ai-sdk-provider@3`, `zod@4`, `zustand@5` | `[EXISTS]` | Direct OpenAI, Google, and fal clients removed. |
@@ -198,7 +198,7 @@ The contract commit fixes `RecipePlan` as the app's recipe format. `docs/vision.
 
 ## 13. Parent synchronization
 
-These are decisions this document makes (§5, §9) that `docs/PLAN.md` does not yet reflect. Slices may rely on them now; the parent should be updated to match.
+Synced into `docs/PLAN.md` (§3 store block, §4 ownership, §4C bullet 1). Kept for traceability:
 
 - `docs/PLAN.md` §6/§8: `bun` → `pnpm` (D1).
 - `docs/PLAN.md` §3 store contract: add `useStore`, `setPlan`, the heartbeat `Card` discriminant, and `selectActiveTimer` (§5).
