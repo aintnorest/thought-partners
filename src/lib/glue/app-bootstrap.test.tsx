@@ -8,7 +8,7 @@ vi.mock("@/lib/glue/heartbeat-scheduler", () => ({
 }));
 
 beforeEach(() => {
-  useStore.setState({ plan: undefined });
+  useStore.setState({ plan: undefined, watch: { active: false, status: "idle" } });
 });
 
 afterEach(() => {

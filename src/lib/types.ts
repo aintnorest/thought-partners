@@ -45,4 +45,17 @@ export interface HeartbeatCard {
   line: string;
 }
 
-export type Card = HeartbeatCard;
+export interface WatchFixCard {
+  kind: "watch_fix";
+  stepId: string;
+  line: string;
+  level?: "low" | "medium" | "high";
+}
+
+export interface WatchReadyCard {
+  kind: "watch_ready";
+  stepId: string;
+  line: string;
+}
+
+export type Card = HeartbeatCard | WatchFixCard | WatchReadyCard;

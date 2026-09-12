@@ -40,6 +40,7 @@ describe("useStore", () => {
       cards: [],
       activeTimer: undefined,
       generation: 0,
+      watch: { active: false, status: "idle" },
     });
   });
 
@@ -93,5 +94,34 @@ describe("useStore", () => {
     useStore.getState().pushCard(second);
 
     expect(useStore.getState().cards).toEqual([first, second]);
+  });
+
+  it("records Watch Me fixes and readiness against the current step", () => {
+    useStore.getState().setPlan(plan);
+
+    useStore.getState().showFix("Lower heat and stir.");
+    expect(useStore.getState().watch).toEqual(
+      expect.objectContaining({
+        active: true,
+        status: "intervene",
+        lastFix: "Lower heat and stir.",
+      }),
+    );
+    expect(useStore.getState().cards).toEqual([
+      { kind: "watch_fix", stepId: "first", line: "Lower heat and stir." },
+    ]);
+
+    useStore.getState().markStepReady("Glossy and even.");
+    expect(useStore.getState().watch).toEqual(
+      expect.objectContaining({
+        active: true,
+        status: "ready",
+        readyCue: "Glossy and even.",
+      }),
+    );
+    expect(useStore.getState().cards).toEqual([
+      { kind: "watch_fix", stepId: "first", line: "Lower heat and stir." },
+      { kind: "watch_ready", stepId: "first", line: "Glossy and even." },
+    ]);
   });
 });

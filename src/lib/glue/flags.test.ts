@@ -3,10 +3,11 @@ import { readFlags } from "./flags";
 
 describe("readFlags", () => {
   it("recognizes enabled query flags", () => {
-    expect(readFlags("?fixture=1&noimages=true")).toEqual({
+    expect(readFlags("?fixture=1&noimages=true&nowatch=1")).toEqual({
       fixture: true,
       noimages: true,
       novoice: false,
+      nowatch: true,
     });
   });
 
@@ -15,6 +16,7 @@ describe("readFlags", () => {
       fixture: false,
       noimages: false,
       novoice: false,
+      nowatch: false,
     });
   });
 });
