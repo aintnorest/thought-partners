@@ -252,7 +252,11 @@ function ImportScreen() {
       <h1 className="text-[clamp(2rem,7vw,3.25rem)] font-bold tracking-[-0.02em] text-warm-off-white">
         Jacques
       </h1>
-      <ImportForm onSubmit={importPlan.submit} onUseSample={importPlan.useSample} />
+      <ImportForm
+        onSubmit={importPlan.submit}
+        onUseSample={importPlan.useSample}
+        pending={importPlan.state.status === "pending"}
+      />
       {importPlan.state.status === "error" && (
         <ErrorState message={importPlan.state.message} onRetry={importPlan.state.retry} />
       )}
@@ -268,7 +272,7 @@ function ImportScreen() {
 
 function Walkthrough({ flags }: { flags: Flags }) {
   useAgentBridge();
-  useStepImages();
+  const images = useStepImages();
   const answer = useAnswer();
   const vision = useVisionCheck();
   const controls = useWalkthroughControls();
@@ -300,7 +304,12 @@ function Walkthrough({ flags }: { flags: Flags }) {
 
       <main className="flex flex-1 flex-col gap-6 overflow-y-auto px-4 pb-56">
         <StepCard step={step} />
-        <ImagePanel imageUrl={step.imageUrl} hidden={flags.noimages} alt={step.title} />
+        <ImagePanel
+          imageUrl={step.imageUrl}
+          hidden={flags.noimages}
+          alt={step.title}
+          pending={images.status === "pending" && Boolean(step.imagePrompt) && !step.imageUrl}
+        />
         {step.durationSec !== undefined && <Timer />}
 
         <QuestionCards

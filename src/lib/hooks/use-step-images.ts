@@ -1,13 +1,21 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useFlags } from "@/lib/glue/app-bootstrap";
 import { useStore } from "@/lib/store";
 
-export function useStepImages(): void {
+export type StepImagesStatus = "idle" | "pending" | "settled";
+
+/**
+ * One `/api/images` attempt per plan id for steps that have an `imagePrompt` but no `imageUrl`.
+ * `status` is "pending" while that request is in flight so the panel can show a skeleton
+ * instead of the "no visual" empty state; it becomes "settled" on success or failure.
+ */
+export function useStepImages(): { status: StepImagesStatus } {
   const planId = useStore((state) => state.plan?.id);
   const { fixture, noimages } = useFlags();
   const attemptedPlanIds = useRef(new Set<string>());
+  const [status, setStatus] = useState<StepImagesStatus>("idle");
 
   useEffect(() => {
     const plan = useStore.getState().plan;
@@ -22,6 +30,7 @@ export function useStepImages(): void {
 
     attemptedPlanIds.current.add(planId);
     const controller = new AbortController();
+    setStatus("pending");
 
     void (async () => {
       try {
@@ -45,6 +54,8 @@ export function useStepImages(): void {
         }
       } catch {
         // Step images are optional; the composed empty state remains usable.
+      } finally {
+        if (!controller.signal.aborted) setStatus("settled");
       }
     })();
 
@@ -54,4 +65,6 @@ export function useStepImages(): void {
       attemptedPlanIds.current.delete(planId);
     };
   }, [fixture, noimages, planId]);
+
+  return { status };
 }
