@@ -18,7 +18,7 @@
 | P0 | Recipe → task plan → stepped walkthrough UI | A + B |
 | P0 | Question cards + streamed Q&A | A + B |
 | P1 | Generated technique images | A |
-| P1 | Voice mode (realtime, tool-driven UI control) | C |
+| P1 | Voice mode (narration + spoken Q&A) — **implemented** | C |
 | P2 | Vision check ("does this look right?") | A + B |
 | P2 | Watch Me (Realtime voice + sampled camera frames) | B + C |
 | P3 | Heartbeat check-ins | B |
@@ -29,7 +29,7 @@
 - **One Next.js app** (App Router, TypeScript, Tailwind), deployed to Vercel. No separate backend, no DB. Server routes hold the sole `OPENROUTER_API_KEY` and proxy every model call through OpenRouter.
 - **The backbone is a JSON plan, not a live agent loop.** One structured generation at import time (`generateObject` + zod) produces a `RecipePlan`. The walkthrough renders deterministically from it. Reason: an agent improvising the whole walkthrough live is unwatchable on stage (latency, drift) and untestable in 4 hours. LLM calls stay at the leaves: Q&A, images, vision verdict, heartbeat line, voice.
 - **"Generative UI" = typed component registry**, not AI SDK RSC (`streamUI`; RSC track is paused upstream). Each step has a `kind` (`prep` | `heat` | `wait` | `combine` | `plate` | `check`) and the UI picks a component per kind. Agent output selects and fills components; it does not emit markup.
-- **Voice:** OpenRouter audio streaming (`openai/gpt-audio-mini`) through our server route — never ship the API key. The browser posts microphone turns and receives SSE audio/transcript/tool events. Each turn includes the current step plus tools that mutate app state (`next_step`, `prev_step`, `repeat_step`, `start_timer`, `ask_question`). Voice controls the same store the buttons do.
+- **Voice (implemented):** direct OpenAI Realtime API over WebRTC (`@openai/agents/realtime`, model `gpt-realtime-2.1`) — not proxied through OpenRouter, since the Realtime WebRTC protocol isn't available there. `POST /api/realtime/session` mints a short-lived ephemeral client secret using a server-only `OPENAI_API_KEY`; the browser uses that secret to connect directly to OpenAI and never sees the raw key. The session narrates the current step on load/step-change and answers spoken questions; a `get_current_step` tool grounds every turn in the live store (never invented content), and an `answer_question` tool records each spoken Q&A as a text card via the same `setAnswer` store action the typed Q&A flow uses. Tool-driven navigation (`next_step`, `prev_step`, `repeat_step`, `start_timer`) is not yet wired — voice currently narrates and answers questions only.
 - **Images:** OpenRouter Image API (`google/gemini-3.1-flash-lite-image`; fall back to `google/gemini-2.5-flash-image`) — **pre-generated at plan time**, cached by prompt hash, never blocking a step render. Style prompt is fixed (clean instructional sketch, white background, top-down) so the set looks coherent.
 - **Vision:** single multimodal call, photo + step context → strict JSON verdict. No agent loop.
 - **Model pins live in exactly one file** (`src/lib/models.ts`) as namespaced OpenRouter model IDs, so a rate limit or outage is a one-line swap.
@@ -87,7 +87,8 @@ API surface (owner A implements, owners B/C consume):
 | `/api/ask` | POST | `{ planId, stepId, question, plan }` | text stream |
 | `/api/vision` | POST | multipart: `image`, `stepId`, `plan` | `VisionVerdict` |
 | `/api/heartbeat` | POST | `{ stepId, elapsedSec, plan }` | `{ line: string }` (≤ 20 words) |
-| `/api/realtime` | POST | multipart: `audio?`, `image?`, `step`, `plan` | SSE audio, transcript, and tool events |
+| `/api/realtime` | POST | multipart: `audio?`, `image?`, `step`, `plan` | SSE audio, transcript, and tool events (Watch Me media receipt only) |
+| `/api/realtime/session` | POST | — | `{ value, expiresAt }` OpenAI Realtime API ephemeral client secret |
 
 Client state (owner B owns the store, owner C only calls its actions) — `src/lib/store.ts`, Zustand:
 

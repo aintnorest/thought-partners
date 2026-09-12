@@ -19,6 +19,7 @@
   "dependencies": {
     "@copilotkit/react-core": "^1.71.0",
     "@copilotkit/runtime": "^1.71.0",
+    "@openai/agents": "^0.18.0",
     "@openrouter/ai-sdk-provider": "^3.0.0",
     "ai": "^7.0.98",
     "next": "16.3.5",

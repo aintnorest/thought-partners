@@ -18,18 +18,31 @@ describe("GET /api/health", () => {
     expect(typeof body.uptimeMs).toBe("number");
     expect(body.uptimeMs).toBeGreaterThanOrEqual(0);
     expect(() => new Date(body.timestamp).toISOString()).not.toThrow();
-    expect(body.keys).toEqual({ openrouter: Boolean(process.env.OPENROUTER_API_KEY) });
+    expect(body.keys).toEqual({
+      openrouter: Boolean(process.env.OPENROUTER_API_KEY),
+      openai: Boolean(process.env.OPENAI_API_KEY),
+    });
     expect(body.openrouter).toBeUndefined();
+  });
+
+  it("reports whether the OpenAI key is configured without leaking it", async () => {
+    vi.stubEnv("OPENAI_API_KEY", "sk-openai-secret");
+    const body = await (await GET(req())).json();
+    expect(body.keys.openai).toBe(true);
+    expect(JSON.stringify(body)).not.toContain("sk-openai-secret");
+
+    vi.stubEnv("OPENAI_API_KEY", "");
+    expect((await (await GET(req())).json()).keys.openai).toBe(false);
   });
 
   it("reports whether the OpenRouter key is configured without leaking it", async () => {
     vi.stubEnv("OPENROUTER_API_KEY", "sk-or-secret");
     const body = await (await GET(req())).json();
-    expect(body.keys).toEqual({ openrouter: true });
+    expect(body.keys.openrouter).toBe(true);
     expect(JSON.stringify(body)).not.toContain("sk-or-secret");
 
     vi.stubEnv("OPENROUTER_API_KEY", "");
-    expect((await (await GET(req())).json()).keys).toEqual({ openrouter: false });
+    expect((await (await GET(req())).json()).keys.openrouter).toBe(false);
   });
 
   it("probes the key against OpenRouter only when asked, without leaking it", async () => {

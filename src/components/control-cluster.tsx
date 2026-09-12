@@ -92,6 +92,7 @@ export function ControlCluster({
   timerDisabled,
   novoice,
   onMic,
+  micStatus,
   camera,
 }: {
   onPrev: () => void;
@@ -103,6 +104,8 @@ export function ControlCluster({
   timerDisabled: boolean;
   novoice: boolean;
   onMic?: () => void;
+  /** Omit when `onMic` is a non-voice shortcut (e.g. scroll-to-Watch-Me in fixture mode). */
+  micStatus?: "idle" | "connecting" | "connected" | "error";
   camera: ReactNode;
 }) {
   return (
@@ -156,8 +159,26 @@ export function ControlCluster({
             <button
               type="button"
               onClick={onMic}
-              aria-label="Microphone capture"
-              className="min-h-14 min-w-14 flex items-center justify-center rounded-full border border-whisper-warm text-warm-off-white hover:bg-raised-charcoal"
+              aria-label={
+                micStatus === undefined
+                  ? "Microphone capture"
+                  : micStatus === "connected"
+                    ? "Stop Jacques's voice"
+                    : micStatus === "connecting"
+                      ? "Connecting to Jacques's voice"
+                      : micStatus === "error"
+                        ? "Retry Jacques's voice"
+                        : "Start Jacques's voice"
+              }
+              className={`min-h-14 min-w-14 flex items-center justify-center rounded-full border transition-all active:-translate-y-px active:brightness-95 ${
+                micStatus === "connected"
+                  ? "border-herb text-herb pulse-ember"
+                  : micStatus === "connecting"
+                    ? "border-saffron text-saffron"
+                    : micStatus === "error"
+                      ? "border-brick text-brick"
+                      : "border-whisper-warm text-warm-off-white hover:bg-raised-charcoal"
+              }`}
             >
               <MicIcon />
             </button>

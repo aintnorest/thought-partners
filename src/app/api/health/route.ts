@@ -41,6 +41,7 @@ export async function GET(request: Request) {
     timestamp: new Date().toISOString(),
     keys: {
       openrouter: Boolean(process.env.OPENROUTER_API_KEY),
+      openai: Boolean(process.env.OPENAI_API_KEY),
     },
     ...(probe ? { openrouter: await probeOpenRouterKey(process.env.OPENROUTER_API_KEY) } : {}),
   });

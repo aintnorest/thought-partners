@@ -7,5 +7,6 @@ export const MODELS = {
   heartbeat: "openai/gpt-4.1-nano", // hard 2.5 s budget; reasoning models miss it
   image: "google/gemini-3.1-flash-lite-image",
   imageFallback: "google/gemini-2.5-flash-image",
-  voice: "openai/gpt-audio-mini",
+  // Direct OpenAI Realtime API (WebRTC), not proxied through OpenRouter: narration + voice Q&A.
+  realtime: "gpt-realtime-2.1",
 } as const;

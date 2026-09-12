@@ -28,6 +28,7 @@ import { useImportPlan } from "@/lib/hooks/use-import-plan";
 import { useStepImages } from "@/lib/hooks/use-step-images";
 import { useVisionCheck } from "@/lib/hooks/use-vision-check";
 import { useWalkthroughControls } from "@/lib/hooks/use-walkthrough-controls";
+import { useJacquesVoice } from "@/lib/realtime/use-jacques-voice";
 import { isWatchableStep, useWatchMeSession } from "@/lib/realtime/use-watch-me-session";
 import { useStore } from "@/lib/store";
 import type {
@@ -276,6 +277,7 @@ function Walkthrough({ flags }: { flags: Flags }) {
   const answer = useAnswer();
   const vision = useVisionCheck();
   const controls = useWalkthroughControls();
+  const voice = useJacquesVoice({ enabled: !flags.novoice && !flags.fixture });
 
   const plan = useStore((state) => state.plan);
   const stepIndex = useStore((state) => state.stepIndex);
@@ -356,6 +358,12 @@ function Walkthrough({ flags }: { flags: Flags }) {
 
       <div className="pointer-events-none fixed inset-x-0 bottom-[164px] z-20 mx-auto flex w-full max-w-[640px] flex-col gap-3 px-4">
         <div className="pointer-events-auto flex flex-col gap-3">
+          {voice.status === "error" && voice.error && (
+            <div className="rounded-3xl border border-whisper-warm border-l-4 border-l-brick bg-raised-charcoal p-4">
+              <p className="text-sm uppercase tracking-[0.08em] text-stone-gray">Jacques's voice</p>
+              <p className="mt-2 text-lg text-warm-off-white">{voice.error}</p>
+            </div>
+          )}
           {heartbeat && <HeartbeatToast card={heartbeat} />}
           {verdict && verdict !== dismissed && (
             <VerdictCard card={verdict} onDismiss={() => setDismissed(verdict)} />
@@ -370,6 +378,20 @@ function Walkthrough({ flags }: { flags: Flags }) {
         timerActive={controls.timerActive}
         timerDisabled={!controls.timerAvailable}
         novoice={flags.novoice}
+        onMic={
+          !flags.novoice && !flags.fixture
+            ? () => {
+                if (voice.status === "connected" || voice.status === "connecting") {
+                  voice.stop();
+                } else {
+                  void voice.start();
+                }
+              }
+            : showWatchMe
+              ? () => document.getElementById("watch-me")?.scrollIntoView({ block: "start" })
+              : undefined
+        }
+        micStatus={!flags.novoice && !flags.fixture ? voice.status : undefined}
         camera={<CameraCapture onCapture={flags.fixture ? undefined : vision.check} />}
       />
     </>
