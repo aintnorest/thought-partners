@@ -29,10 +29,12 @@ export function AppBootstrap({ children }: { children: ReactNode }) {
       const plan = fixture as RecipePlan;
       useStore.getState().setPlan(plan);
 
-      for (const step of plan.steps) {
-        if (step.imageUrl) {
-          const img = new Image();
-          img.src = step.imageUrl;
+      if (!nextFlags.noimages) {
+        for (const step of plan.steps) {
+          if (step.imageUrl) {
+            const img = new Image();
+            img.src = step.imageUrl;
+          }
         }
       }
     }

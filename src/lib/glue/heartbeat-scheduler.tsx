@@ -61,6 +61,12 @@ export function HeartbeatScheduler(): null {
 
     const generation = timer.generation;
     const intervalId = setInterval(async () => {
+      // Natural expiry emits no store change, so the effect never re-runs; stop ourselves here.
+      if (selectActiveTimer(useStore.getState())?.generation !== generation) {
+        clearInterval(intervalId);
+        return;
+      }
+
       const elapsedSec = Math.round((Date.now() - timer.startedAt) / 1_000);
       const line = flags.fixture ? fixtureLine(step) : await fetchLine(step.id, elapsedSec, plan);
 

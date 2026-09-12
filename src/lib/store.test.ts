@@ -55,7 +55,7 @@ describe("useStore", () => {
       stepId: "first",
       startedAt: Date.now(),
       sec: 5,
-      generation: 1,
+      generation: 2,
     });
 
     vi.advanceTimersByTime(5_001);
@@ -71,7 +71,18 @@ describe("useStore", () => {
 
     expect(useStore.getState().stepIndex).toBe(1);
     expect(useStore.getState().activeTimer).toBeUndefined();
-    expect(useStore.getState().generation).toBe(2);
+    expect(useStore.getState().generation).toBe(3);
+  });
+
+  it("replacing the plan invalidates a running timer", () => {
+    useStore.getState().setPlan(plan);
+    useStore.getState().startTimer(5);
+    const before = useStore.getState().generation;
+
+    useStore.getState().setPlan({ ...plan, id: "other" });
+
+    expect(selectActiveTimer(useStore.getState())).toBeUndefined();
+    expect(useStore.getState().generation).toBe(before + 1);
   });
 
   it("appends heartbeat cards", () => {

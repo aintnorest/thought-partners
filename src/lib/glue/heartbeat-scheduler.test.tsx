@@ -74,4 +74,17 @@ describe("HeartbeatScheduler", () => {
     act(() => vi.advanceTimersByTime(5_000));
     expect(useStore.getState().cards).toHaveLength(1);
   });
+
+  it("stops ticking once the timer expires naturally", () => {
+    act(() => useStore.getState().startTimer(12));
+    render(<HeartbeatScheduler />);
+
+    act(() => vi.advanceTimersByTime(10_000));
+    expect(useStore.getState().cards).toHaveLength(2);
+
+    // Timer expired at 12s; ticks at 15s, 20s, 25s must add nothing.
+    act(() => vi.advanceTimersByTime(15_000));
+    expect(useStore.getState().cards).toHaveLength(2);
+    expect(vi.getTimerCount()).toBe(0);
+  });
 });
