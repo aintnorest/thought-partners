@@ -20,6 +20,7 @@
 | P1 | Generated technique images | A |
 | P1 | Voice mode (realtime, tool-driven UI control) | C |
 | P2 | Vision check ("does this look right?") | A + B |
+| P2 | Watch Me (Realtime voice + sampled camera frames) | B + C |
 | P3 | Heartbeat check-ins | B |
 | cut | Cooklang import, nutrition, diet variants, auth, persistence | — |
 
@@ -126,7 +127,7 @@ Owns `src/lib/realtime/**`, `src/app/api/realtime/**`, `src/app/layout.tsx`, `.e
 - **Deploy to Vercel before writing any voice code** — a broken deploy discovered at T+3:30 is a lost demo.
 - `useJacquesVoice()` hook: mint ephemeral token → WebRTC peer connection → mic track + remote audio element → register tools that call store actions → inject `plan` + current step on each `stepIndex` change (`session.update`), so Jacques always knows where we are.
 - Heartbeat wiring: when a `wait` step's `attentionSec` elapses, `/api/heartbeat` → speak line via the live session if connected, else toast.
-- Owns merges, env keys, and the demo run-through. Also owns the **kill switches**: `?novoice=1`, `?fixture=1`, `?noimages=1`.
+- Owns merges, env keys, and the demo run-through. Also owns the **kill switches**: `?novoice=1`, `?fixture=1`, `?noimages=1`, `?nowatch=1`.
 
 ## 5. Timeline (T = start, hard checkpoints)
 

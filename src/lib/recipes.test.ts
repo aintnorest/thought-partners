@@ -14,13 +14,14 @@ describe("createRecipe", () => {
       title: "Test Toast",
       servings: 2,
       steps: [
-        { instruction: "Toast the bread", durationSeconds: 120 },
+        { instruction: "Toast the bread", durationSeconds: 120, doneWhen: "Bread is golden." },
         { instruction: "Butter it" },
       ],
     });
 
     expect(recipe.id).toBe("test-toast");
     expect(recipe.steps.map((step) => step.id)).toEqual(["test-toast-1", "test-toast-2"]);
+    expect(recipe.steps[0]?.doneWhen).toBe("Bread is golden.");
     expect(getRecipe(recipe.id)).toEqual(recipe);
     expect(listRecipes()).toContainEqual(recipe);
   });
@@ -45,6 +46,7 @@ describe("createRecipe", () => {
       "negative duration",
       { title: "x", servings: 1, steps: [{ instruction: "x", durationSeconds: -1 }] },
     ],
+    ["blank doneWhen", { title: "x", servings: 1, steps: [{ instruction: "x", doneWhen: " " }] }],
   ])("rejects %s", (_label, input) => {
     expect(() => createRecipe(input)).toThrow(ValidationError);
   });
