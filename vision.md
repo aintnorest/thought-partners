@@ -1,4 +1,4 @@
-## Jaques: Agentic Sous Chef
+## Jacques: Agentic Sous Chef
 
 Agentic sous chef that coaches home cooks through recipes in real-time.
 
