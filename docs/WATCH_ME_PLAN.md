@@ -6,7 +6,7 @@
 
 ## Why this belongs in the demo
 
-The current POC already has the core recipe walkthrough: plan, step card, timer, Q&A, voice, heartbeat, and optional vision verdict. Watch Me combines those pieces into one memorable moment:
+The main Jacques POC plan targets a recipe walkthrough with step cards, timers, Q&A, voice, heartbeat, and optional vision verdict. Watch Me combines those pieces into one memorable moment once the main flow exists:
 
 1. User taps **Watch Me** on a step.
 2. Phone camera points at the board or pan.
@@ -39,6 +39,33 @@ Avoid for demo:
 - Food-safety claims.
 - Full 30 FPS streaming.
 - Whole-recipe autonomous watching.
+
+
+## Current codebase alignment
+
+Latest check-in is a Next 16 PWA scaffold using `pnpm`, an in-memory recipe store in `src/lib/recipes.ts`, `GET/POST /api/recipes`, `GET /api/recipes/[id]`, and seeded recipes shaped as:
+
+```ts
+type Recipe = {
+  id: string;
+  title: string;
+  servings: number;
+  steps: {
+    id: string;
+    instruction: string;
+    durationSeconds?: number;
+    doneWhen?: string;
+  }[];
+};
+```
+
+This PR adds the one small data hook Watch Me needs: optional `doneWhen` cues on `RecipeStep`. The main app still does **not** yet have the richer `RecipePlan`/`Step` contract from `docs/PLAN.md`, a Zustand walkthrough store, `/api/import`, `/api/realtime/token`, or a recipe walkthrough route. Therefore Watch Me must stay additive:
+
+- bind first to the current seeded `Recipe` / `RecipeStep` shape
+- treat `RecipeStep.instruction` as the visible step text
+- use `RecipeStep.doneWhen` as the visual target when available
+- move state into the shared walkthrough store only after that store lands
+- keep the OpenAI key server-side; `.env.example` already names `OPENAI_API_KEY`
 
 ## Priority
 
@@ -146,11 +173,36 @@ flowchart LR
 - Jacques audio: remote WebRTC audio track.
 - Camera frames: `conversation.item.create` with `input_image` data URL over data channel.
 - Function calls: realtime server events over data channel.
-- UI updates: local tool handler mutates Zustand store.
+- UI updates: local tool handler mutates the current client state; move the same actions into the shared Zustand store once that store exists.
 
 ## Client contract
 
-Extend client state additively:
+First pass against the current codebase should adapt the existing `RecipeStep` instead of requiring the richer future `Step` type:
+
+```ts
+type WatchableStep = {
+  id: string;
+  title: string; // current fallback: RecipeStep.instruction
+  instruction: string;
+  durationSeconds?: number;
+  doneWhen?: string; // future Step.doneWhen; temporary fallback is inferred from instruction
+};
+```
+
+Adapter:
+
+```ts
+function toWatchableStep(step: RecipeStep): WatchableStep {
+  return {
+    id: step.id,
+    title: step.instruction,
+    instruction: step.instruction,
+    durationSeconds: step.durationSeconds,
+  };
+}
+```
+
+Add Watch Me state locally in the walkthrough component first. Move it into `src/lib/store.ts` when the shared walkthrough store lands:
 
 ```ts
 interface WatchState {
@@ -165,7 +217,7 @@ interface WatchState {
 }
 ```
 
-Add store actions:
+Future store actions:
 
 ```ts
 startWatch(): void;
@@ -176,9 +228,7 @@ markStepReady(cue: string): void;
 recordDeviation(note: string): void;
 ```
 
-No required changes to `RecipePlan` for the first version.
-
-Optional later field:
+No required structural changes to `src/lib/recipes.ts` beyond the additive optional `doneWhen` field. Optional later field, only after the richer `Step` contract exists:
 
 ```ts
 interface Step {
@@ -218,7 +268,7 @@ When Watch Me is active:
 - Capture one JPEG frame every `1500ms`.
 - Use low or medium resolution.
 - Send `detail: 'low'` unless the step needs texture detail.
-- Include the current step title and `doneWhen` with every frame.
+- Include the current step instruction and visual target with every frame.
 - Ask the model to stay silent if no correction is needed.
 - Stop frame capture immediately when Watch Me is off.
 
@@ -236,9 +286,9 @@ async function sendWatchFrame({ dataChannel, frameBase64, step }: Args) {
           type: 'input_text',
           text: [
             'Watch-mode frame.',
-            `Current step: ${step.title}`,
-            `Instruction: ${step.detail}`,
-            `Done when: ${step.doneWhen ?? 'Use the step instruction.'}`,
+            `Current step: ${step.title ?? step.instruction}`,
+            `Instruction: ${step.instruction}`,
+            `Watch target: ${step.doneWhen ?? 'Use the step instruction as the visual target.'}`,
             'If no correction is needed, stay silent.',
             'If correction is needed, speak briefly and call a UI tool.',
           ].join('\n'),
@@ -395,7 +445,7 @@ Track C owns:
 - frame capture loop
 - kill switch
 
-Track A does not need to change anything for the first Watch Me pass.
+Track A does not need to change anything for the first Watch Me pass. In the current scaffold, that means no required edits to `src/lib/recipes.ts`, `/api/recipes`, or `/api/recipes/[id]`.
 
 ## Kill switches
 
@@ -428,14 +478,14 @@ Demo acceptance:
 Engineering acceptance:
 
 - No OpenAI API key in client code.
-- Watch Me is optional and does not block recipe import or walkthrough.
+- Watch Me is optional and does not block recipe listing, recipe details, import, or walkthrough.
 - No irreversible actions are exposed as tools.
 - No food-safety guarantees in prompts or UI copy.
 - App remains usable with `?nowatch=1`.
 
 ## Minimal build sequence
 
-1. Add Watch Me UI shell against fixture step.
+1. Add Watch Me UI shell against a seeded recipe step or fixture step.
 2. Add camera preview and frame capture helper.
 3. Wire OpenAI Realtime audio session if not already done.
 4. Send one image frame manually and get a spoken response.

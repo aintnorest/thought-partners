@@ -8,6 +8,7 @@ export class ValidationError extends Error {
 export type RecipeStep = {
   id: string;
   instruction: string;
+  doneWhen?: string;
   durationSeconds?: number;
 };
 
@@ -27,7 +28,8 @@ const STORE_KEY = Symbol.for("jacques.recipes.store");
 const globalStore = globalThis as typeof globalThis & {
   [STORE_KEY]?: Map<string, Recipe>;
 };
-const store: Map<string, Recipe> = (globalStore[STORE_KEY] ??= new Map<string, Recipe>());
+const store = globalStore[STORE_KEY] ?? new Map<string, Recipe>();
+globalStore[STORE_KEY] = store;
 
 function slugify(value: string): string {
   return value
@@ -78,7 +80,7 @@ export function createRecipe(input: unknown): Recipe {
     if (typeof raw !== "object" || raw === null) {
       throw new ValidationError(`step ${index + 1} must be an object`);
     }
-    const { instruction, durationSeconds } = raw as Record<string, unknown>;
+    const { instruction, durationSeconds, doneWhen } = raw as Record<string, unknown>;
     if (typeof instruction !== "string" || instruction.trim() === "") {
       throw new ValidationError(`step ${index + 1} instruction is required`);
     }
@@ -88,10 +90,14 @@ export function createRecipe(input: unknown): Recipe {
     ) {
       throw new ValidationError(`step ${index + 1} durationSeconds must be a non-negative number`);
     }
+    if (doneWhen !== undefined && (typeof doneWhen !== "string" || doneWhen.trim() === "")) {
+      throw new ValidationError(`step ${index + 1} doneWhen must be a non-empty string`);
+    }
     return {
       id: "",
       instruction: instruction.trim(),
       ...(durationSeconds !== undefined ? { durationSeconds } : {}),
+      ...(doneWhen !== undefined ? { doneWhen: doneWhen.trim() } : {}),
     };
   });
 
@@ -121,12 +127,22 @@ if (store.size === 0) {
       {
         instruction: "Crack 3 eggs into a bowl, season with salt, and beat until uniform.",
         durationSeconds: 60,
+        doneWhen: "Eggs are uniformly mixed with no visible streaks of white.",
       },
-      { instruction: "Melt butter in a non-stick pan over medium-low heat.", durationSeconds: 90 },
-      { instruction: "Pour in the eggs and stir constantly with a spatula.", durationSeconds: 120 },
+      {
+        instruction: "Melt butter in a non-stick pan over medium-low heat.",
+        durationSeconds: 90,
+        doneWhen: "Butter is melted and foamy, not browned.",
+      },
+      {
+        instruction: "Pour in the eggs and stir constantly with a spatula.",
+        durationSeconds: 120,
+        doneWhen: "Eggs form small soft curds but still look glossy.",
+      },
       {
         instruction: "When just set but still glossy, fold and roll onto a plate.",
         durationSeconds: 45,
+        doneWhen: "Omelette is just set, glossy on top, and rolled without browning.",
       },
     ],
   });
@@ -138,10 +154,23 @@ if (store.size === 0) {
       {
         instruction: "Warm olive oil and gently sweat minced garlic until fragrant.",
         durationSeconds: 120,
+        doneWhen: "Garlic smells fragrant and stays pale, with no brown edges.",
       },
-      { instruction: "Add crushed tomatoes, salt, and a pinch of sugar.", durationSeconds: 60 },
-      { instruction: "Simmer, stirring occasionally, until thickened.", durationSeconds: 1200 },
-      { instruction: "Finish with torn basil and a drizzle of olive oil.", durationSeconds: 30 },
+      {
+        instruction: "Add crushed tomatoes, salt, and a pinch of sugar.",
+        durationSeconds: 60,
+        doneWhen: "Tomatoes are bubbling gently and seasoning is stirred through.",
+      },
+      {
+        instruction: "Simmer, stirring occasionally, until thickened.",
+        durationSeconds: 1200,
+        doneWhen: "Sauce coats a spoon and leaves a brief trail when stirred.",
+      },
+      {
+        instruction: "Finish with torn basil and a drizzle of olive oil.",
+        durationSeconds: 30,
+        doneWhen: "Basil is just wilted and oil is glossy on the surface.",
+      },
     ],
   });
 }
