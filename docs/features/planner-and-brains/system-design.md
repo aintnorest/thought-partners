@@ -2,7 +2,7 @@
 
 **Feature:** Track A of `docs/PLAN.md` §4A — the server-side planner and the model-backed "brains" (`/api/import`, `/api/images`, `/api/ask`, `/api/vision`, `/api/heartbeat`), their prompts, and the `src/lib/models.ts` values. Client store, UI, voice, glue, and deploy are other tracks and out of scope.
 **Sources:** `docs/PLAN.md` @ `74cfc67` (§2–§7), `docs/vision.md` @ `1af11a0`, `docs/features/glue-and-deploy/system-design.md` @ `74cfc67` (the boundary Track A plugs into), working tree @ `74cfc67`.
-**Status:** draft. Contract commit (Track C's C1) is on `main`; all five route bodies are still stubs (`src/app/api/*/route.ts` return the fixture or `501 { error }`). D-IMG is decided (in-process cache + `data:` URLs, §9); the one open item is Track B/C acknowledging the image handoff (D-HANDOFF, §9).
+**Status:** implemented on `main`. All five routes live against OpenRouter and curl-proven (§10 exits). Model pins chosen by measured latency: `plan`/`ask` on `openai/gpt-4.1-mini` (28 s → 11 s plan, 4.1 s → 0.8 s ask TTFB), `heartbeat` on `openai/gpt-4.1-nano` (fits the 2.5 s budget), `vision` on `openai/gpt-5-mini`. OpenAI strict structured output needs every field required, so `src/lib/schemas.ts` carries nullable model-facing mirrors (`recipePlanModelSchema`, `visionVerdictModelSchema`) that are null-stripped and re-validated against the contract schemas. D-HANDOFF still awaits Track B.
 
 ## 1. Scope and non-goals
 
