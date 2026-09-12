@@ -41,7 +41,10 @@ Jacques is a PWA sous chef that turns recipes into a step-by-step cooking flow. 
 `GET /api/health` → `{ status, uptimeMs, timestamp, keys: { openrouter: boolean } }`. `keys.openrouter` must be `true` on production.
 
 ## Docs
+Start with `AGENTS.md` for agent-facing repo guidance, especially before implementing Dave's Google Stitch UX.
 
+
+- `AGENTS.md` — agent-facing repo map, Stitch UX integration notes, Watch Me and sample recipe pointers
 - `docs/PLAN.md` — build plan, frozen contracts, Watch Me priority, and sample recipe fixture note
 - `docs/WATCH_ME_PLAN.md` — Watch Me feature plan and OpenRouter streaming architecture
 - `docs/features/glue-and-deploy/system-design.md` — Track C (glue, deploy, kill switches, heartbeat)
