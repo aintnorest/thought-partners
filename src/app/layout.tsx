@@ -1,8 +1,13 @@
 import type { Metadata, Viewport } from "next";
+import { Outfit, JetBrains_Mono } from "next/font/google";
 import type { ReactNode } from "react";
 import { ServiceWorkerRegistrar } from "@/components/service-worker-registrar";
 import { AppBootstrap } from "@/lib/glue/app-bootstrap";
 import "./globals.css";
+
+/* Locked type pair (DESIGN.md §3): Outfit everywhere, JetBrains Mono for clock/quantity figures. */
+const outfit = Outfit({ subsets: ["latin"], weight: ["400", "500", "600", "700"] });
+const jetbrainsMono = JetBrains_Mono({ subsets: ["latin"], weight: ["400", "700"] });
 
 export const metadata: Metadata = {
   applicationName: "Jacques",
@@ -27,7 +32,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0b0b0f",
+  themeColor: "#1b1916",
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
@@ -36,7 +41,9 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
-      <body className="min-h-dvh bg-neutral-950 text-neutral-100 antialiased">
+      <body
+        className={`${outfit.className} min-h-dvh bg-cast font-sans text-cream antialiased`}
+      >
         <AppBootstrap>{children}</AppBootstrap>
         <ServiceWorkerRegistrar />
       </body>
