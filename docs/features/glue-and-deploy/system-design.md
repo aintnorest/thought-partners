@@ -144,9 +144,9 @@ Error body for every stub this feature commits: `{ error: string }` with a 4xx/5
 | Route stubs for `docs/PLAN.md` §3 lines 81–88 | `[PROPOSED]` | Stub bodies only (§7). |
 | `src/lib/store.ts` `useStore`, `setPlan`, heartbeat `pushCard` discriminant, `selectActiveTimer` | `[PROPOSED, Track B implements]` | Signatures in §5. |
 | `src/lib/glue/flags.ts` `readFlags`, `src/lib/glue/app-bootstrap.tsx` `useFlags` | `[PROPOSED]` | Signatures in §6. |
-| `GET /api/health` `keys: { openrouter: boolean }` | `[PROPOSED]` | Presence only, never values. Route reassigned to Track C (§13). |
-| `.env.example` key `OPENROUTER_API_KEY` | `[PROPOSED]` | Replace the three current direct-provider keys during implementation. |
-| Provider deps `ai@7`, `@openrouter/ai-sdk-provider`, `zod@4`, `zustand@5` | `[PROPOSED]` | Remove the direct OpenAI, Google, and fal clients during implementation. |
+| `GET /api/health` `keys: { openrouter: boolean }` | `[EXISTS]` | Presence only, never values. Route reassigned to Track C (§13). |
+| `.env.example` key `OPENROUTER_API_KEY` | `[EXISTS]` | Sole provider key. |
+| Provider deps `ai@7`, `@openrouter/ai-sdk-provider@3`, `zod@4`, `zustand@5` | `[EXISTS]` | Direct OpenAI, Google, and fal clients removed. |
 | Toolchain: `pnpm`, Next 16.3.5, Biome, Vitest | `[EXISTS]` | `docs/PLAN.md` §6/§8 say `bun`; superseded by decision D1. |
 | `public/sw.js` network-first navigations, `/api/*` never cached, cache-first static assets | `[EXISTS]` | Enables the offline fixture path without changes. |
 

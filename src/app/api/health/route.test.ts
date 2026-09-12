@@ -15,24 +15,16 @@ describe("GET /api/health", () => {
     expect(typeof body.uptimeMs).toBe("number");
     expect(body.uptimeMs).toBeGreaterThanOrEqual(0);
     expect(() => new Date(body.timestamp).toISOString()).not.toThrow();
-    expect(body.keys).toEqual({
-      openai: Boolean(process.env.OPENAI_API_KEY),
-      google: Boolean(process.env.GOOGLE_GENERATIVE_AI_API_KEY),
-      fal: Boolean(process.env.FAL_KEY),
-    });
+    expect(body.keys).toEqual({ openrouter: Boolean(process.env.OPENROUTER_API_KEY) });
   });
 
-  it("reports which provider keys are configured", async () => {
-    vi.stubEnv("OPENAI_API_KEY", "openai-key");
-    vi.stubEnv("GOOGLE_GENERATIVE_AI_API_KEY", "");
-    vi.stubEnv("FAL_KEY", "fal-key");
-
+  it("reports whether the OpenRouter key is configured without leaking it", async () => {
+    vi.stubEnv("OPENROUTER_API_KEY", "sk-or-secret");
     const body = await GET().json();
+    expect(body.keys).toEqual({ openrouter: true });
+    expect(JSON.stringify(body)).not.toContain("sk-or-secret");
 
-    expect(body.keys).toEqual({
-      openai: true,
-      google: false,
-      fal: true,
-    });
+    vi.stubEnv("OPENROUTER_API_KEY", "");
+    expect((await GET().json()).keys).toEqual({ openrouter: false });
   });
 });
