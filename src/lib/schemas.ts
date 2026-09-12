@@ -1,6 +1,8 @@
 import { z } from "zod";
 import type { RecipePlan, Step, VisionVerdict } from "@/lib/types";
 
+export const PLAN_STEPS = { min: 6, max: 12 } as const;
+
 export const stepKindSchema = z.enum(["prep", "heat", "wait", "combine", "plate", "check"]);
 
 export const ingredientSchema = z.object({
@@ -23,7 +25,7 @@ export const stepSchema = z.object({
   imagePrompt: z.string().optional(),
   imageUrl: z.string().optional(),
   questions: z.array(z.string()).length(3),
-  doneWhen: z.string().min(1),
+  doneWhen: z.string().min(1).optional(),
 }) satisfies z.ZodType<Step>;
 
 export const recipePlanSchema = z.object({
@@ -96,11 +98,48 @@ export function stripNulls<T>(value: T): T {
   }
   return value;
 }
+/** Normalizes model plans before enforcing their semantic invariants. */
+export function normalizePlan(plan: RecipePlan): RecipePlan {
+  const ids = new Set(plan.steps.map((step) => step.id));
+  const parallelById = new Map(plan.steps.map((step) => [step.id, new Set<string>()]));
+
+  for (const step of plan.steps) {
+    const parallel = parallelById.get(step.id);
+    if (!parallel) continue;
+
+    for (const other of step.parallelWith ?? []) {
+      if (other === step.id || !ids.has(other)) continue;
+      parallel.add(other);
+      parallelById.get(other)?.add(step.id);
+    }
+  }
+
+  return {
+    ...plan,
+    steps: plan.steps.map((step) => {
+      const cleanStep = { ...step };
+      const parallel = parallelById.get(step.id);
+      delete cleanStep.imageUrl;
+
+      if (step.parallelWith !== undefined || (parallel?.size ?? 0) > 0) {
+        cleanStep.parallelWith = [...(parallel ?? [])];
+      }
+
+      return cleanStep;
+    }),
+  };
+}
+
 /** Semantic invariants from planner-and-brains §5 that zod shape alone cannot express. */
 export function planInvariantErrors(plan: RecipePlan): string[] {
   const errors: string[] = [];
+  if (plan.steps.length > PLAN_STEPS.max) {
+    errors.push(`plan has more than ${PLAN_STEPS.max} steps`);
+  }
+
   const ids = new Set<string>();
   for (const step of plan.steps) {
+    if (!step.doneWhen) errors.push(`step "${step.id}" is missing doneWhen`);
     if (ids.has(step.id)) errors.push(`duplicate step id "${step.id}"`);
     ids.add(step.id);
   }

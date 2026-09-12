@@ -27,14 +27,27 @@ function validBody() {
     plan,
   };
 }
+let parts: Array<{ type: string; text?: string; error?: unknown }>;
+
 beforeEach(() => {
+  parts = [
+    { type: "text-delta", text: "Slice " },
+    { type: "text-delta", text: "thinner." },
+  ];
   vi.mocked(streamText).mockReset();
-  vi.mocked(streamText).mockReturnValue({
-    toTextStreamResponse: () =>
-      new Response("Slice thinner.", {
-        headers: { "content-type": "text/plain; charset=utf-8" },
-      }),
-  } as never);
+  vi.mocked(streamText).mockImplementation(
+    () =>
+      ({
+        fullStream: new ReadableStream({
+          start(controller) {
+            for (const part of parts) {
+              controller.enqueue(part);
+            }
+            controller.close();
+          },
+        }),
+      }) as never,
+  );
 });
 
 afterEach(() => {
@@ -71,6 +84,19 @@ describe("POST /api/ask", () => {
         system: expect.stringContaining(step.title),
       }),
     );
+  });
+
+  it("returns a generic 502 when the provider errors before emitting text", async () => {
+    const error = new Error("boom");
+    parts = [{ type: "error", error }];
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => undefined);
+
+    const response = await POST(request(validBody()));
+
+    expect(response.status).toBe(502);
+    expect(await response.json()).toEqual({ error: "answer unavailable" });
+    expect(consoleError).toHaveBeenCalledWith("Failed to start answer stream", error);
+    consoleError.mockRestore();
   });
 
   it("returns a generic 502 when the answer stream cannot start", async () => {

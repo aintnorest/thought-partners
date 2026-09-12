@@ -6,6 +6,7 @@ import { MODELS } from "@/lib/models";
 import { lowReasoning, openrouter } from "@/lib/openrouter";
 import { buildPlanPrompt } from "@/lib/prompts/plan";
 import {
+  normalizePlan,
   planInvariantErrors,
   recipePlanModelSchema,
   recipePlanSchema,
@@ -21,17 +22,6 @@ const importRequestSchema = z
   .refine(({ url, text }) => url !== undefined || text !== undefined);
 
 type PlanAttempt = { plan: RecipePlan } | { error: string; cause?: unknown };
-
-function withoutImageUrls(plan: RecipePlan): RecipePlan {
-  return {
-    ...plan,
-    steps: plan.steps.map((step) => {
-      const cleanStep = { ...step };
-      delete cleanStep.imageUrl;
-      return cleanStep;
-    }),
-  };
-}
 
 async function generatePlan(prompt: string): Promise<PlanAttempt> {
   try {
@@ -53,14 +43,14 @@ async function generatePlan(prompt: string): Promise<PlanAttempt> {
         error: validated.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join("; "),
       };
     }
-    const object = validated.data;
+    const object = normalizePlan(validated.data);
 
     const invariantErrors = planInvariantErrors(object);
     if (invariantErrors.length > 0) {
       return { error: invariantErrors.join("; ") };
     }
 
-    return { plan: withoutImageUrls(object) };
+    return { plan: object };
   } catch (cause) {
     return {
       error: cause instanceof Error ? cause.message : "model generation failed",
@@ -107,5 +97,5 @@ export async function POST(request: Request) {
     "Recipe planning failed after one retry; returning fixture",
     secondAttempt.cause ?? secondAttempt.error,
   );
-  return Response.json(withoutImageUrls(fixture as RecipePlan));
+  return Response.json(normalizePlan(fixture as RecipePlan));
 }

@@ -3,6 +3,8 @@ import { isIP } from "node:net";
 
 const MAX_REDIRECTS = 5;
 const MAX_TEXT_LENGTH = 20_000;
+export const FETCH_TIMEOUT_MS = 8_000;
+export const MAX_BODY_BYTES = 1_000_000;
 const REDIRECT_STATUSES: Record<number, true> = {
   301: true,
   302: true,
@@ -27,6 +29,7 @@ function isBlockedIpv4(address: string): boolean {
 
   const [first, second] = octets;
   return (
+    first === 0 ||
     first === 10 ||
     first === 127 ||
     (first === 169 && second === 254) ||
@@ -150,6 +153,38 @@ function htmlToReadableText(html: string): string {
   return decodeHtmlEntities(withoutTags).replace(/\s+/g, " ").trim().slice(0, MAX_TEXT_LENGTH);
 }
 
+async function readResponseBody(response: Response): Promise<string> {
+  if (!response.body) return "";
+
+  const reader = response.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let byteLength = 0;
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+
+    byteLength += value.byteLength;
+    if (byteLength > MAX_BODY_BYTES) {
+      try {
+        await reader.cancel();
+      } catch {
+        // Preserve the size error if cancellation itself fails.
+      }
+      throw new Error("recipe page too large");
+    }
+    chunks.push(value);
+  }
+
+  const bytes = new Uint8Array(byteLength);
+  let offset = 0;
+  for (const chunk of chunks) {
+    bytes.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  return new TextDecoder().decode(bytes);
+}
+
 export async function fetchRecipeText(url: string): Promise<string> {
   let current: URL;
   try {
@@ -163,7 +198,10 @@ export async function fetchRecipeText(url: string): Promise<string> {
 
     let response: Response;
     try {
-      response = await fetch(current, { redirect: "manual" });
+      response = await fetch(current, {
+        redirect: "manual",
+        signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+      });
     } catch {
       throw new Error("Recipe URL could not be fetched");
     }
@@ -181,6 +219,8 @@ export async function fetchRecipeText(url: string): Promise<string> {
     }
 
     if (!response.ok) throw new Error("Recipe URL returned an error");
-    return htmlToReadableText(await response.text());
+    const readableText = htmlToReadableText(await readResponseBody(response));
+    if (readableText.length < 40) throw new Error("recipe page has no readable text");
+    return readableText;
   }
 }

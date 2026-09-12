@@ -39,7 +39,43 @@ export async function POST(request: Request) {
       prompt,
       providerOptions: lowReasoning,
     });
-    return result.toTextStreamResponse();
+    const reader = result.fullStream.getReader();
+    let firstText = "";
+
+    while (firstText.length === 0) {
+      const { done, value: part } = await reader.read();
+      if (done) {
+        console.error("Answer stream ended before producing text");
+        return Response.json({ error: "answer unavailable" }, { status: 502 });
+      }
+      if (part.type === "error") {
+        console.error("Failed to start answer stream", part.error);
+        return Response.json({ error: "answer unavailable" }, { status: 502 });
+      }
+      if (part.type === "text-delta") {
+        firstText += part.text;
+      }
+    }
+
+    const encoder = new TextEncoder();
+    return new Response(
+      new ReadableStream({
+        async start(controller) {
+          controller.enqueue(encoder.encode(firstText));
+          while (true) {
+            const { done, value: part } = await reader.read();
+            if (done || part.type === "error") {
+              controller.close();
+              return;
+            }
+            if (part.type === "text-delta") {
+              controller.enqueue(encoder.encode(part.text));
+            }
+          }
+        },
+      }),
+      { headers: { "content-type": "text/plain; charset=utf-8" } },
+    );
   } catch (error) {
     console.error("Failed to start answer stream", error);
     return Response.json({ error: "answer unavailable" }, { status: 502 });

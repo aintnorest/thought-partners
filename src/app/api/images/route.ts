@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { cacheKey, getOrCreate } from "@/lib/images/cache";
 import { generateTechniqueImage } from "@/lib/images/generate";
+import { PLAN_STEPS } from "@/lib/schemas";
 
 const requestSchema = z.object({
   planId: z.string().min(1),
@@ -11,7 +12,7 @@ const requestSchema = z.object({
         imagePrompt: z.string().min(1),
       }),
     )
-    .max(12),
+    .max(PLAN_STEPS.max),
 });
 
 export async function POST(request: Request) {

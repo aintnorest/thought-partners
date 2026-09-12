@@ -1,9 +1,11 @@
+import { PLAN_STEPS } from "@/lib/schemas";
+
 export function buildPlanPrompt(recipeText: string, priorError?: string): string {
   const retryInstruction = priorError
     ? `\nThe previous plan failed validation: ${priorError}\nCorrect every listed problem.`
     : "";
 
-  return `Turn the recipe below into one RecipePlan with 6–12 optimally ordered steps.
+  return `Turn the recipe below into one RecipePlan with ${PLAN_STEPS.min}–${PLAN_STEPS.max} optimally ordered steps.
 
 Requirements:
 - Put all mise en place first. Merge trivially serial actions into one step.
