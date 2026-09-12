@@ -28,4 +28,4 @@ Agentic sous chef that coaches home cooks through recipes in real-time.
 - Server / host setup for agent runtime
 - Create/configure basic sous chef agent (instructions, etc.)
 - Agent Q&A handling
-- Voice mode / OpenAI real-time API integration?
+- Voice mode / OpenRouter streaming audio integration?

@@ -7,5 +7,8 @@ export function GET() {
     status: "ok",
     uptimeMs: Date.now() - startedAt,
     timestamp: new Date().toISOString(),
+    keys: {
+      openrouter: Boolean(process.env.OPENROUTER_API_KEY),
+    },
   });
 }

@@ -59,13 +59,13 @@ type Recipe = {
 };
 ```
 
-This PR adds the one small data hook Watch Me needs: optional `doneWhen` cues on `RecipeStep`. The main app still does **not** yet have the richer `RecipePlan`/`Step` contract from `docs/PLAN.md`, a Zustand walkthrough store, `/api/import`, `/api/realtime/token`, or a recipe walkthrough route. Therefore Watch Me must stay additive:
+This PR adds the one small data hook Watch Me needs: optional `doneWhen` cues on `RecipeStep`. The main app still does **not** yet have the richer `RecipePlan`/`Step` contract from `docs/PLAN.md`, a Zustand walkthrough store, `/api/import`, `/api/realtime`, or a recipe walkthrough route. Therefore Watch Me must stay additive:
 
 - bind first to the current seeded `Recipe` / `RecipeStep` shape
 - treat `RecipeStep.instruction` as the visible step text
 - use `RecipeStep.doneWhen` as the visual target when available
 - move state into the shared walkthrough store only after that store lands
-- keep the OpenAI key server-side; `.env.example` already names `OPENAI_API_KEY`
+- keep the OpenRouter key server-side; `.env.example` will name only `OPENROUTER_API_KEY`
 
 ## Priority
 
@@ -73,7 +73,7 @@ Add to `PLAN.md` priority ladder as:
 
 | Prio | Feature | Owner track |
 |---|---|---|
-| P2 | Watch Me: OpenAI Realtime voice + camera snapshots + proactive tool calls | B + C |
+| P2 | Watch Me: OpenRouter streaming voice + camera snapshots + proactive tool calls | B + C |
 
 Cut order:
 
@@ -149,19 +149,20 @@ Jacques:
 
 > "Not yet. Garlic burns fast. Add it after the onions turn glossy."
 
-## OpenAI Realtime architecture
+## OpenRouter streaming architecture
 
-Use OpenAI Realtime over WebRTC for audio and a data channel for images, events, and tool calls.
+Use a server-side OpenRouter proxy for microphone turns, sampled images, streamed audio, and tool calls.
 
 ```mermaid
 flowchart LR
-  Mic[Microphone] --> RTC[WebRTC PeerConnection]
-  Cam[Camera preview] --> Capture[Sample JPEG frame]
-  Capture --> DC[Realtime data channel]
-  RTC --> OAI[OpenAI Realtime]
-  DC --> OAI
-  OAI --> Audio[Jacques spoken audio]
-  OAI --> Events[Realtime events]
+  Mic[Microphone] --> AudioCapture[MediaRecorder chunks]
+  Cam[Camera preview] --> FrameCapture[Sample JPEG frame]
+  AudioCapture --> Proxy[Next.js /api/realtime]
+  FrameCapture --> Proxy
+  Proxy --> OR[OpenRouter]
+  OR --> Stream[SSE audio / transcript / tool events]
+  Stream --> Audio[Jacques spoken audio]
+  Stream --> Events[App events]
   Events --> Tools[Tool call handler]
   Tools --> Store[Zustand store]
   Store --> UI[Step UI / Timer / Fix Card]
@@ -169,10 +170,10 @@ flowchart LR
 
 ### Transport split
 
-- Microphone audio: WebRTC audio track.
-- Jacques audio: remote WebRTC audio track.
-- Camera frames: `conversation.item.create` with `input_image` data URL over data channel.
-- Function calls: realtime server events over data channel.
+- Microphone audio: `MediaRecorder` chunks posted to `/api/realtime`.
+- Jacques audio: streamed from the server proxy over SSE.
+- Camera frames: JPEG `input_image` data posted to the same proxy.
+- Function calls: normalized tool events streamed from the proxy.
 - UI updates: local tool handler mutates the current client state; move the same actions into the shared Zustand store once that store exists.
 
 ## Client contract
@@ -236,7 +237,7 @@ interface Step {
 }
 ```
 
-## Realtime session instruction
+## Watch Me model instruction
 
 Use this instruction when Watch Me is active:
 
@@ -384,18 +385,18 @@ const watchTools = [
 
 ## Tool-call handling
 
-When the data channel receives a completed function call:
+When the SSE stream receives a completed tool call:
 
 1. Parse arguments.
 2. Execute the matching local store action.
-3. Send `function_call_output` back to OpenAI.
+3. Send `function_call_output` back through the server proxy.
 4. Let the model continue speaking if needed.
 
 Pseudo-code:
 
 ```ts
-function handleRealtimeEvent(event: RealtimeEvent) {
-  if (event.type !== 'response.function_call_arguments.done') return;
+function handleWatchEvent(event: WatchEvent) {
+  if (event.type !== 'tool_call') return;
 
   const args = JSON.parse(event.arguments);
 
@@ -439,8 +440,8 @@ Track B owns:
 
 Track C owns:
 
-- OpenAI Realtime session
-- data channel event handling
+- OpenRouter server proxy and streaming session
+- SSE event handling
 - microphone/audio lifecycle
 - frame capture loop
 - kill switch
@@ -451,7 +452,7 @@ Track A does not need to change anything for the first Watch Me pass. In the cur
 
 Add query params:
 
-- `?novoice=1` disables Realtime audio.
+- `?novoice=1` disables streaming voice audio.
 - `?nowatch=1` hides Watch Me.
 - `?fixture=1` keeps the walkthrough offline.
 
@@ -467,8 +468,8 @@ Demo acceptance:
 
 1. User can start Watch Me from one visual step.
 2. Browser requests camera permission and shows preview.
-3. Realtime session receives microphone audio.
-4. Client sends at least one JPEG frame as `input_image` over the data channel.
+3. The server-side OpenRouter proxy receives microphone audio.
+4. Client sends at least one JPEG frame as `input_image` through the proxy.
 5. Jacques gives a short spoken correction when prompted by a visible issue or staged demo image.
 6. Jacques calls at least one UI tool.
 7. UI visibly updates from that tool call.
@@ -477,7 +478,7 @@ Demo acceptance:
 
 Engineering acceptance:
 
-- No OpenAI API key in client code.
+- No OpenRouter API key in client code.
 - Watch Me is optional and does not block recipe listing, recipe details, import, or walkthrough.
 - No irreversible actions are exposed as tools.
 - No food-safety guarantees in prompts or UI copy.
@@ -487,7 +488,7 @@ Engineering acceptance:
 
 1. Add Watch Me UI shell against a seeded recipe step or fixture step.
 2. Add camera preview and frame capture helper.
-3. Wire OpenAI Realtime audio session if not already done.
+3. Wire the server-side OpenRouter audio stream.
 4. Send one image frame manually and get a spoken response.
 5. Add `show_fix` and `start_timer` tool handling.
 6. Add frame loop gated by Watch Me state.
