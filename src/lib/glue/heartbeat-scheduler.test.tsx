@@ -5,7 +5,7 @@ import type { RecipePlan } from "@/lib/types";
 import { HeartbeatScheduler } from "./heartbeat-scheduler";
 
 vi.mock("@/lib/glue/app-bootstrap", () => ({
-  useFlags: () => ({ fixture: true, noimages: false, novoice: false }),
+  useFlags: () => ({ fixture: true, noimages: false, novoice: false, nowatch: false }),
 }));
 
 const plan: RecipePlan = {
@@ -38,6 +38,8 @@ describe("HeartbeatScheduler", () => {
       stepIndex: 0,
       cards: [],
       activeTimer: undefined,
+      generation: 0,
+      watch: { active: false, status: "idle" },
     });
   });
 

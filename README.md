@@ -17,9 +17,19 @@ pnpm dev                     # http://localhost:3000
 Jacques is a PWA sous chef that turns recipes into a step-by-step cooking flow. The current repo includes the scaffold, fixture data, seeded recipes, sample Cooklang recipes, and planning docs for the AI-backed routes.
 
 - **Core walkthrough:** `docs/PLAN.md` defines the target `RecipePlan` contract, step UI, timers, question cards, generated images, vision verdicts, heartbeat check-ins, and voice controls.
-- **Watch Me:** `docs/WATCH_ME_PLAN.md` defines camera-assisted coaching. Watch Me uses sampled camera frames plus voice/tool events so Jacques can stay quiet by default and speak only when a visible cooking cue needs action.
+- **Watch Me:** the walkthrough currently checks microphone input and camera capture. `docs/WATCH_ME_PLAN.md` describes the planned AI coaching; transcription, visual assessment, tool events, and spoken responses are not connected.
 - **Sample recipes:** `samples/cooklang/` contains curated Cooklang-style recipes grouped by `familiar/`, `exotic/`, and `centerpiece/`. See `samples/AGENTS.md` for the recipe conventions and `-- watch:` visual cue format.
 - **Design system:** `DESIGN.md` is the required visual source of truth for cooking screens.
+
+## Microphone and camera check
+
+Open `/?fixture=1`, scroll to **Watch Me**, and select **Start capture**. Allow camera and microphone access to see the live preview and input-level meter. Fixture mode keeps media on the device and sends no API requests. The demo fix/readiness buttons show explicitly scripted examples, not model output.
+
+Outside fixture mode, a loaded walkthrough posts microphone chunks and JPEG frames to `/api/realtime` about every 1.5 seconds. That endpoint validates and acknowledges receipt only; it does not forward media to OpenRouter. Recorder chunks are not standalone speech turns.
+
+**Cancel capture**, **Stop capture**, changing steps/recipes, and unmounting release media resources. Late permission grants from a canceled session are stopped rather than reopening capture. If one device is denied, the other can still run.
+
+Use HTTPS or localhost. A phone opened at an HTTP LAN address cannot access media. Check browser permissions and OS privacy settings after a denial. Verify real microphone input separately on the demo phone, including the installed iOS PWA; automated smoke checks use synthetic media.
 
 ## Kill switches (URL query)
 
@@ -27,7 +37,7 @@ Jacques is a PWA sous chef that turns recipes into a step-by-step cooking flow. 
 | --- | --- |
 | `?fixture=1` | Loads `src/fixtures/plan.carbonara.json`, calls no `/api/*` routes, works offline after prewarm. |
 | `?noimages=1` | No step images are rendered or fetched. |
-| `?novoice=1` | Voice hook is not mounted. |
+| `?novoice=1` | No microphone capture or audio context; Watch Me camera preview remains available. |
 | `?nowatch=1` | Watch Me camera-assisted coaching is hidden/disabled. |
 
 ## Offline prewarm (before a demo)
